@@ -8,10 +8,10 @@ export default function AIAssistant() {
     <>
       {/* Chat Panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 w-80 h-96 bg-[var(--bg-elevated)] border border-[var(--border-subtle)] rounded-xl shadow-lg flex flex-col z-50">
+        <div className="fixed bottom-24 right-6 w-80 h-96 bg-(--bg-elevated) border border-(--border-subtle) rounded-xl shadow-lg flex flex-col z-50">
           
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-[var(--border-subtle)]">
+          <div className="flex items-center justify-between p-3 border-b border-(--border-subtle)">
             <div className="flex items-center gap-2">
               <Bot size={18} />
               <span className="text-sm font-medium">AI Assistant</span>
@@ -29,10 +29,10 @@ export default function AIAssistant() {
           </div>
 
           {/* Input */}
-          <div className="p-2 border-t border-[var(--border-subtle)]">
+          <div className="p-2 border-t border-(--border-subtle)">
             <input
               placeholder="Ask something..."
-              className="w-full bg-[var(--bg-surface)] rounded-md px-3 py-2 text-sm outline-none"
+              className="w-full bg-(--bg-surface) rounded-md px-3 py-2 text-sm outline-none"
             />
           </div>
         </div>
@@ -41,7 +41,7 @@ export default function AIAssistant() {
       {/* Floating Button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-(--accent) hover:bg-(--accent-hover) text-white flex items-center justify-center shadow-lg z-50"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-(--accent) hover:bg-(--accent-hover) text-white flex items-center justify-center shadow-lg z-50 cursor-pointer"
       >
         <Bot size={24} />
       </button>

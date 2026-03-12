@@ -28,9 +28,10 @@ export const modules: ModuleCardProps[] = [
     topics: 8,
     xp: 300,
     level: "BEGINNER",
-    status: "completed",
+    status: "not-started",
     icon: <Boxes size={22} />,
-    color: "#22C55E"
+    color: "#22C55E",
+    link: "/modules/css-flexbox",
   },
   {
     title: "Data Structures & Algos",

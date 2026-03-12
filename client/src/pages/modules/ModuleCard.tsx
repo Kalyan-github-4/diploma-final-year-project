@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 
@@ -17,6 +18,7 @@ export type ModuleCardProps = {
   status: ModuleStatus
   icon: React.ReactNode
   color: string
+  link?: string
 }
 
 const statusStyles = {
@@ -54,9 +56,10 @@ export const ModuleCard = ({
   level,
   status,
   icon,
-  color
+  color,
+  link
 }: ModuleCardProps) => {
-
+  const navigate = useNavigate()
   const ui = statusStyles[status]
 
   return (
@@ -112,6 +115,7 @@ export const ModuleCard = ({
           size="sm"
           disabled={status === "locked"}
           className="rounded-lg"
+          onClick={() => link && navigate(link)}
         >
           {ui.button}
         </Button>
