@@ -18,6 +18,10 @@ export const router = createBrowserRouter([
         index: true,
         element: <Dashboard />,
       },
+        {
+        path: "dashboard",
+        element: <Dashboard />,
+      },
       {
         path: "modules",
         element: <Modules />,

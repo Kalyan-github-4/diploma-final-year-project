@@ -10,6 +10,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+.font-sans {
+  font-family: 'Public Sans', sans-serif;
+}
+
+.font-grotesk {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
 /* -------------------------------
    Base Reset
 -------------------------------- */
