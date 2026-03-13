@@ -32,7 +32,7 @@ const Sidebar = () => {
     <motion.div
       animate={{ width: collapsed ? "80px" : "239px" }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="h-full flex flex-col bg-(--bg-surface) border-r border-(--border-subtle) overflow-hidden"
+      className="h-full flex flex-col bg-(--bg-surface) border-r border-border overflow-hidden"
     >
       {/* Logo */}
       <div className="h-20 flex items-center px-4 gap-3 shrink-0">
@@ -86,7 +86,7 @@ const Sidebar = () => {
               <motion.div
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg relative z-10
                   ${collapsed ? "justify-center" : "justify-start"}
-                  ${active ? "text-(--text-primary)" : "text-(--text-secondary) hover:bg-(--bg-elevated)"}`}
+                  ${active ? "text-foreground" : "text-(--text-secondary) hover:bg-(--bg-elevated)"}`}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >
@@ -107,7 +107,7 @@ const Sidebar = () => {
       </div>
 
       {/* Profile */}
-      <div className="mt-auto p-4 border-t border-(--border-subtle)">
+      <div className="mt-auto p-4 border-t border-border">
         <motion.div
           className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${collapsed ? "justify-center" : ""}`}
           whileHover={{ scale: 1.02 }}

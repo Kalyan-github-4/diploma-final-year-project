@@ -3,7 +3,7 @@
 .git-learning-page {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100% + 48px);
   overflow: hidden;
   margin: -24px;
 }

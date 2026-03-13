@@ -104,7 +104,7 @@ export const ModuleCard = ({
         <span>{topics} Topics</span>
       </div>
 
-      <Progress value={progress} className="mt-2 h-1" indicatorClassName={ui.progressColor} />
+      <Progress value={progress} className="mt-2 h-1" indicatorColor={color} />
 
       {/* Footer */}
       <div className="mt-4 flex items-center justify-between text-xs font-sans text-(--text-secondary)">

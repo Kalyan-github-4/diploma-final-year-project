@@ -5,13 +5,25 @@
   "license": "ISC",
   "author": "kalyan",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js",
+    "start": "node server.js",
+    "build": "node -e \"console.log('Server build: no transpilation required')\"",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "test": "echo \"No tests configured\""
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "cors": "^2.8.6",
+    "drizzle-orm": "^0.44.7",
+    "express": "^5.2.1",
+    "postgres": "^3.4.7",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "drizzle-kit": "^0.31.9"
   }
 }

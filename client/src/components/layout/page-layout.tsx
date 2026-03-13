@@ -3,7 +3,7 @@ import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 import AIAssistant from "./ai/ai-assistant.tsx"
 
-const hideTopbarRoutes = ["/modules/css-flexbox", "/modules/git"]
+const hideTopbarRoutes = ["/modules/css-flexbox", "/modules/git", "/modules/layout-engineering"]
 
 const PageLayout = () => {
   const { pathname } = useLocation()

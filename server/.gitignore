@@ -1,5 +1,5 @@
 # =========================
-# Dependencies
+# Node dependencies
 # =========================
 node_modules/
 
@@ -12,38 +12,54 @@ node_modules/
 .env.production
 
 # =========================
-# Build output (Vite / React)
-# =========================
-dist/
-build/
-
-# =========================
-# Testing / coverage
-# =========================
-coverage/
-
-# =========================
-# TypeScript
-# =========================
-*.tsbuildinfo
-
-# =========================
 # Logs
 # =========================
+logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
 # =========================
-# Editor folders
+# Runtime data
+# =========================
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# =========================
+# Coverage / testing
+# =========================
+coverage/
+.nyc_output/
+
+# =========================
+# Build output
+# =========================
+dist/
+build/
+out/
+
+# =========================
+# TypeScript cache
+# =========================
+*.tsbuildinfo
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor
 # =========================
 .vscode/
 .idea/
 
 # =========================
-# OS junk
+# Drizzle / DB temp files
 # =========================
-.DS_Store
-Thumbs.db
+drizzle/*.sqlite
+drizzle/*.db

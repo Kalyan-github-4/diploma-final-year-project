@@ -1,10 +1,12 @@
 import {
   GitFork,
-  Boxes,
   Network,
   Terminal,
-  Bug
+  Bug,
+  LayoutGrid
 } from "lucide-react"
+
+// import { GitBranch } from "@phosphor-icons/react"
 import type { ModuleCardProps } from "./ModuleCard"
 
 export const modules: ModuleCardProps[] = [
@@ -22,17 +24,17 @@ export const modules: ModuleCardProps[] = [
     link: "/modules/git"
   },
   {
-    title: "CSS Flexbox",
+    title: "Layout Engineering",
     description:
-      "Learn modern layout techniques and responsive design.",
-    progress: 100,
-    topics: 8,
-    xp: 300,
-    level: "BEGINNER",
+      "Master Flexbox, CSS Grid, and advanced layouts with real-world challenges. 3 progressive paths with 18 interactive missions.",
+    progress: 33,
+    topics: 18,
+    xp: 2700,
+    level: "INTERMEDIATE",
     status: "not-started",
-    icon: <Boxes size={22} />,
-    color: "#22C55E",
-    link: "/modules/css-flexbox",
+    icon: <LayoutGrid size={22} />,
+    color: "#06B6D4",
+    link: "/modules/layout-engineering"
   },
   {
     title: "Data Structures & Algos",
@@ -46,11 +48,12 @@ export const modules: ModuleCardProps[] = [
     icon: <Network size={22} />,
     color: "#3B82F6"
   },
+
   {
     title: "Terminal Basics",
     description:
       "Learn to navigate and manipulate your system using CLI.",
-    progress: 0,
+    progress: 30,
     topics: 5,
     xp: 200,
     level: "BEGINNER",

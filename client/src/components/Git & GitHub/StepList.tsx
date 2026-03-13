@@ -7,6 +7,15 @@ interface StepListProps {
   completedSteps: string[]
 }
 
+function renderInstruction(instruction: string) {
+  const parts = instruction.split(/`([^`]+)`/g)
+
+  return parts.map((part, index) => {
+    const isCode = index % 2 === 1
+    return isCode ? <code key={`${part}-${index}`}>{part}</code> : part
+  })
+}
+
 export default function StepList({ steps, currentStep, completedSteps }: StepListProps) {
   return (
     <div>
@@ -32,15 +41,9 @@ export default function StepList({ steps, currentStep, completedSteps }: StepLis
                   />
                 )}
               </div>
-              <span
-                className={`step-item__text step-item__text--${status}`}
-                dangerouslySetInnerHTML={{
-                  __html: step.instruction.replace(
-                    /`([^`]+)`/g,
-                    "<code>$1</code>"
-                  ),
-                }}
-              />
+              <span className={`step-item__text step-item__text--${status}`}>
+                {renderInstruction(step.instruction)}
+              </span>
             </div>
           )
         })}

@@ -9,6 +9,7 @@ import { processCommand } from "@/lib/gitSimulator"
 import type { GitState, Commit } from "@/lib/gitSimulator"
 import { allMissions, doesCommandCompleteStep } from "@/lib/mission.utils"
 import type { Mission } from "@/lib/mission.utils"
+import { generateGitMissions } from "@/services/git-missions.service"
 import "./GitLearningPage.css"
 
 /* Build initial GitState from any mission's graph data */
@@ -50,10 +51,13 @@ function buildInitialState(mission: Mission): GitState {
 
 export default function GitLearningPage() {
   const navigate = useNavigate()
+  const [missions, setMissions] = useState<Mission[]>(allMissions)
   const [missionIndex, setMissionIndex] = useState(0)
-  const mission = allMissions[missionIndex]
+  const [isLoadingMissions, setIsLoadingMissions] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const mission = missions[missionIndex] || allMissions[0]
 
-  const [gitState, setGitState] = useState<GitState>(() => buildInitialState(mission))
+  const [gitState, setGitState] = useState<GitState>(() => buildInitialState(allMissions[0]))
   const [terminalHistory, setTerminalHistory] = useState<TerminalEntry[]>([])
   const [inputValue, setInputValue] = useState("")
   const [currentStep, setCurrentStep] = useState(0)
@@ -62,6 +66,66 @@ export default function GitLearningPage() {
   const [timer, setTimer] = useState(0)
   const [missionComplete, setMissionComplete] = useState(false)
   const [newCommitId, setNewCommitId] = useState<string | null>(null)
+
+  const resetMissionState = useCallback((nextMission: Mission) => {
+    setMissionComplete(false)
+    setGitState(buildInitialState(nextMission))
+    setTerminalHistory([])
+    setCurrentStep(0)
+    setCompletedSteps([])
+    setTimer(0)
+    setShowHint(false)
+    setNewCommitId(null)
+    setInputValue("")
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadGeneratedMissions() {
+      const userId = localStorage.getItem("codeking_user_id") || "guest-user"
+      const level = Number(localStorage.getItem("codeking_user_level") || "1")
+
+      try {
+        const generated = await generateGitMissions({
+          userId,
+          level,
+          topic: "git-github",
+        })
+
+        if (cancelled) return
+
+        if (generated.length > 0) {
+          setMissions(generated)
+          setMissionIndex(0)
+          resetMissionState(generated[0])
+          setLoadError(null)
+          return
+        }
+
+        setMissions(allMissions)
+        setMissionIndex(0)
+        resetMissionState(allMissions[0])
+        setLoadError("No generated missions found. Loaded default missions.")
+      } catch {
+        if (cancelled) return
+        setMissions(allMissions)
+        setMissionIndex(0)
+        resetMissionState(allMissions[0])
+        setLoadError("Server mission generation unavailable. Loaded default missions.")
+      } finally {
+        if (!cancelled) {
+          setIsLoadingMissions(false)
+        }
+      }
+    }
+
+    loadGeneratedMissions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [resetMissionState])
 
   /* Timer */
   useEffect(() => {
@@ -76,6 +140,8 @@ export default function GitLearningPage() {
 
   /* Process a command */
   const handleSubmit = useCallback(() => {
+    if (isLoadingMissions || missionComplete) return
+
     const cmd = inputValue.trim()
     if (!cmd) return
 
@@ -137,7 +203,7 @@ export default function GitLearningPage() {
     }
 
     setInputValue("")
-  }, [inputValue, gitState, currentBranch, currentStep, mission.steps])
+  }, [isLoadingMissions, missionComplete, inputValue, gitState, currentBranch, currentStep, mission.steps])
 
   /* Run test: check if current step command works */
   const handleRunTest = useCallback(() => {
@@ -161,7 +227,7 @@ export default function GitLearningPage() {
     <div className="git-learning-page">
       {/* Zone 1: Top Bar */}
       <TopBar
-        missionTitle={mission.title}
+        missionTitle={isLoadingMissions ? "Loading mission..." : mission.title}
         timer={timer}
         onRunTest={handleRunTest}
       />
@@ -180,7 +246,7 @@ export default function GitLearningPage() {
             <Terminal
               history={terminalHistory}
               currentBranch={currentBranch}
-              inputValue={inputValue}
+              inputValue={isLoadingMissions ? "" : inputValue}
               onInputChange={setInputValue}
               onSubmit={handleSubmit}
             />
@@ -198,6 +264,10 @@ export default function GitLearningPage() {
           onSkip={() => navigate("/modules")}
         />
       </div>
+
+      {loadError && !missionComplete && (
+        <div className="px-6 py-2 text-xs text-(--text-secondary)">{loadError}</div>
+      )}
 
       {/* Mission Complete Modal */}
       {missionComplete && (
@@ -228,24 +298,16 @@ export default function GitLearningPage() {
                 className="mission-complete-modal__btn mission-complete-modal__btn--primary"
                 onClick={() => {
                   const nextIdx = missionIndex + 1
-                  if (nextIdx < allMissions.length) {
+                  if (nextIdx < missions.length) {
                     setMissionIndex(nextIdx)
-                    const nextMission = allMissions[nextIdx]
-                    setMissionComplete(false)
-                    setGitState(buildInitialState(nextMission))
-                    setTerminalHistory([])
-                    setCurrentStep(0)
-                    setCompletedSteps([])
-                    setTimer(0)
-                    setShowHint(false)
-                    setNewCommitId(null)
-                    setInputValue("")
+                    const nextMission = missions[nextIdx]
+                    resetMissionState(nextMission)
                   } else {
                     navigate("/modules")
                   }
                 }}
               >
-                {missionIndex + 1 < allMissions.length ? "Next Mission →" : "All Done! 🏆"}
+                {missionIndex + 1 < missions.length ? "Next Mission →" : "All Done! 🏆"}
               </button>
             </div>
           </div>
