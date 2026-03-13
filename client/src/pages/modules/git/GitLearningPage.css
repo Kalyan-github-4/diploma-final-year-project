@@ -1,0 +1,40 @@
+/* ─── Git Learning Page ─── */
+
+.git-learning-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  margin: -24px;
+}
+
+.git-learning-page__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.git-learning-page__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Graph area: ~55% */
+.git-learning-page__graph {
+  flex: 55;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Terminal area: ~45% */
+.git-learning-page__terminal {
+  flex: 45;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}

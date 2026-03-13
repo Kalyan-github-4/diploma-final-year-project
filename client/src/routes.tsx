@@ -9,6 +9,7 @@ import Progress from "./pages/progress/progress"
 import Missions from "./pages/missions/missions"
 import Leaderboard from "./pages/leaderboard/leaderboard"
 import FlexmonArena from "./components/CSS Flexbox/FlexmonArena"
+import GitLearningPage from "./pages/modules/git/GitLearningPage"
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: "modules/css-flexbox",
         element: <FlexmonArena />,
+      },
+      {
+        path: "modules/git",
+        element: <GitLearningPage />,
       },
     ],
   },

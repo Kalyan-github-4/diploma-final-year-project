@@ -87,7 +87,6 @@ const Sidebar = () => {
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg relative z-10
                   ${collapsed ? "justify-center" : "justify-start"}
                   ${active ? "text-(--text-primary)" : "text-(--text-secondary) hover:bg-(--bg-elevated)"}`}
-                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
               >

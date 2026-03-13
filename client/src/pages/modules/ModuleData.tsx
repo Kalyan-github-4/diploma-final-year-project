@@ -18,7 +18,8 @@ export const modules: ModuleCardProps[] = [
     level: "INTERMEDIATE",
     status: "in-progress",
     icon: <GitFork size={22} />,
-    color: "#F97316"
+    color: "#F97316",
+    link: "/modules/git"
   },
   {
     title: "CSS Flexbox",
