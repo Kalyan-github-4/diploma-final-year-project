@@ -63,7 +63,7 @@ export const ModuleCard = ({
   const ui = statusStyles[status]
 
   return (
-    <div className="bg-(--bg-elevated) border border-(--border-subtle) rounded-2xl p-6 flex flex-col justify-between transition hover:shadow-md">
+    <div className="bg-(--bg-elevated) border border-border rounded-2xl p-6 flex flex-col justify-between transition hover:shadow-md">
 
       {/* Top */}
       <div className="flex justify-between items-start">
@@ -89,11 +89,11 @@ export const ModuleCard = ({
 
       {/* Title */}
       <div className="mt-4 space-y-1">
-        <h3 className="font-grotesk text-lg font-bold text-(--text-primary)">
+        <h3 className="font-grotesk text-lg font-bold text-foreground">
           {title}
         </h3>
 
-        <p className="font-sans text-sm text-(--text-secondary)">
+        <p className="font-sans text-sm text-foreground">
           {description}
         </p>
       </div>

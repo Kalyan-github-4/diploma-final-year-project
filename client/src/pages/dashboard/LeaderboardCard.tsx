@@ -1,4 +1,4 @@
-import { Star } from "lucide-react"
+import { Crown } from "lucide-react"
 
 const players = [
   { rank: 1, name: "John Doe", xp: 42000, color: "#F59E0B" },
@@ -51,7 +51,7 @@ const LeaderboardCard = () => {
 
             {/* Glow indicator */}
             {p.rank === 1 && (
-              <Star className="w-5 h-5 text-yellow-400" />
+              <Crown className="w-5 h-5 text-yellow-400" />
             )}
           </div>
         ))}

@@ -12,7 +12,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div className="text-xl font-bold font-grotesk text-foreground">Continue Learning</div>
-        <Button variant="link" onClick={() => navigate("/modules")}>View Roadmap</Button>
+        <Button variant="link" onClick={() => navigate("/modules")} className="font-medium">View Roadmap</Button>
       </div>
 
       {/* Placeholder for ongoing modules or courses */}

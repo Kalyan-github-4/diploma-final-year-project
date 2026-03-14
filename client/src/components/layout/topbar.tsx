@@ -1,6 +1,6 @@
-import { Bell } from "lucide-react";
 import SearchCommand from "../ui/SearchCommand";
 import { ThemeToggle } from "../theme-toggle";
+import { Notification } from "./notification";
 
 const Topbar = () => {
 
@@ -21,12 +21,12 @@ const Topbar = () => {
         </div>
 
         {/* Notification */}
-        <div className="relative p-2 rounded-md hover:bg-(--bg-elevated) cursor-pointer">
-          <Bell className="w-5 h-5" />
+        
+         <Notification/>
 
           {/* Notification Dot */}
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </div>
+          {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
+      
 
         {/* Avatar */}
         {/* <div className="flex items-center gap-2 cursor-pointer">

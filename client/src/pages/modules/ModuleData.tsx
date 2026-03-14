@@ -16,7 +16,7 @@ export const modules: ModuleCardProps[] = [
       "Master version control, branching strategies, and collaboration.",
     progress: 60,
     topics: 12,
-    xp: 500,
+    xp: 3500,
     level: "INTERMEDIATE",
     status: "in-progress",
     icon: <GitFork size={22} />,

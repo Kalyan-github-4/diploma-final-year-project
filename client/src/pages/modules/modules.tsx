@@ -10,11 +10,11 @@ const Module = () => {
       <div className="flex items-start justify-between mb-6">
 
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold font-grotesk text-(--text-primary)">
+          <h1 className="text-3xl font-bold font-grotesk text-foreground">
             Modules
           </h1>
 
-          <p className="text-sm text-(--text-secondary) font-sans">
+          <p className="text-sm text-foreground font-sans">
             Explore the various modules available in CodeKing.
           </p>
         </div>
@@ -24,7 +24,7 @@ const Module = () => {
             Filter
           </Button>
 
-          <Button size="lg" className="rounded-2xl px-4 py-2 cursor-pointer">
+          <Button size="lg" className="rounded-2xl px-4 py-2 cursor-pointer font-medium">
             View Roadmap
           </Button>
         </div>

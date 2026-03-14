@@ -1,48 +1,30 @@
-import { GitBranch, LayoutGrid, TrendingUp } from "lucide-react"
-
 const badges = [
-  {
-    title: "Branch Pro",
-    color: "#8B5CF6",
-    icon: <GitBranch size={20} />
-  },
-  {
-    title: "Layout King",
-    color: "#06B6D4",
-    icon: <LayoutGrid size={20} />
-  },
-  {
-    title: "Streak Hero",
-    color: "#F97316",
-    icon: <TrendingUp size={20} />
-  }
+  { title: "Bug Hunter", img: "/test-1.png" },
+  { title: "Bug Hunter", img: "/test-2.png" },
+  { title: "Bug Hunter", img: "/test-3.png" },
 ]
 
 const Achivement = () => {
   return (
     <div className="bg-(--bg-elevated) rounded-3xl border border-border p-6 xl:p-7">
-      
+
       {/* Badge Row */}
-      <div className="flex items-center justify-between gap-6">
+      <div className="grid grid-cols-3 items-center">
         {badges.map((badge, i) => (
-          <div key={i} className="flex flex-col items-center gap-2 flex-1">
-            
-            {/* Circular Badge */}
-            <div
-              className="rounded-full p-4 border-2 shadow-sm transition hover:scale-105"
-              style={{
-                borderColor: badge.color,
-                backgroundColor: badge.color + "15",
-                color: badge.color
-              }}
-            >
-              {badge.icon}
-            </div>
+          <div key={i} className="flex items-center justify-center">
 
-            <p className="text-xs font-medium text-(--text-secondary) text-center">
-              {badge.title}
-            </p>
-
+            <img
+              src={badge.img}
+              alt={badge.title}
+              className="
+                w-full h-auto
+                max-w-27
+                sm:max-w-29
+                md:max-w-32
+                xl:max-w-36
+                object-contain
+              "
+            />
           </div>
         ))}
       </div>
