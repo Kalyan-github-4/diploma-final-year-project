@@ -22,6 +22,10 @@ const generatedMissions = pgTable("generated_missions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
+const modules = {
+  
+}
+
 module.exports = {
   userProfiles,
   generatedMissions,

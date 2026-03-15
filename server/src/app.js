@@ -3,6 +3,8 @@ const cors = require("cors")
 const { env } = require("./config/env")
 const { ensureDatabaseSchema } = require("./db/bootstrap")
 const missionsRouter = require("./routes/missions.routes")
+const aiRouter = require("./routes/ai.routes")
+
 
 const app = express()
 
@@ -19,6 +21,7 @@ app.get("/api/health", (_req, res) => {
 })
 
 app.use("/api/git/missions", missionsRouter)
+app.use("/api/ai", aiRouter)
 
 async function initializeApp() {
 	if (!env.databaseUrl) {

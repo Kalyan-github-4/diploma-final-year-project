@@ -228,8 +228,24 @@ function buildFallbackMission({ level, difficulty, orderIndex, topic }) {
   }
 }
 
-async function tryOpenAiMissionBatch({ userId, level, topic, difficulties }) {
-  if (!env.openAiApiKey) return null
+function parseJsonFromText(text) {
+  if (!text || typeof text !== "string") return null
+
+  const cleaned = text
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim()
+
+  try {
+    return JSON.parse(cleaned)
+  } catch {
+    return null
+  }
+}
+
+async function tryGeminiMissionBatch({ userId, level, topic, difficulties }) {
+  if (!env.geminiApiKey) return null
 
   const schemaHint = {
     missions: [
@@ -259,33 +275,34 @@ async function tryOpenAiMissionBatch({ userId, level, topic, difficulties }) {
     ],
   }
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
+  const systemPrompt =
+    "Generate Git practice missions as strict JSON only. No prose. Ensure missions are sorted from easiest to hardest by provided difficulty values and every step is executable in a git simulator."
+
+  const requestPayload = {
+    userId,
+    level,
+    topic,
+    difficulties,
+    outputSchema: schemaHint,
+  }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(env.geminiModel || "gemini-1.5-flash")}:generateContent?key=${encodeURIComponent(env.geminiApiKey)}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${env.openAiApiKey}`,
     },
     body: JSON.stringify({
-      model: env.openAiModel,
-      input: [
-        {
-          role: "system",
-          content:
-            "Generate Git practice missions as strict JSON only. No prose. Ensure missions are sorted from easiest to hardest by provided difficulty values and every step is executable in a git simulator.",
-        },
+      systemInstruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
         {
           role: "user",
-          content: JSON.stringify({
-            userId,
-            level,
-            topic,
-            difficulties,
-            outputSchema: schemaHint,
-          }),
+          parts: [{ text: JSON.stringify(requestPayload) }],
         },
       ],
-      text: {
-        format: { type: "json_object" },
+      generationConfig: {
+        responseMimeType: "application/json",
       },
     }),
   })
@@ -293,15 +310,13 @@ async function tryOpenAiMissionBatch({ userId, level, topic, difficulties }) {
   if (!response.ok) return null
 
   const data = await response.json()
-  const raw = data?.output_text
+  const raw = data?.candidates?.[0]?.content?.parts
+    ?.map((part) => part?.text || "")
+    .join("\n")
   if (!raw) return null
 
-  let parsed = null
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    return null
-  }
+  const parsed = parseJsonFromText(raw)
+  if (!parsed) return null
 
   const missions = Array.isArray(parsed?.missions) ? parsed.missions : null
   if (!missions || missions.length === 0) return null
@@ -311,7 +326,7 @@ async function tryOpenAiMissionBatch({ userId, level, topic, difficulties }) {
 
 async function generateMissionSet({ userId, level, topic }) {
   const difficulties = levelToDifficultyBand(level)
-  const aiMissions = await tryOpenAiMissionBatch({ userId, level, topic, difficulties })
+  const aiMissions = await tryGeminiMissionBatch({ userId, level, topic, difficulties })
 
   const normalized = (aiMissions || difficulties.map((difficulty, index) =>
     buildFallbackMission({ level, difficulty, orderIndex: index, topic })
