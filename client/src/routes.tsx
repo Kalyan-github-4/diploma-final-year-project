@@ -1,7 +1,6 @@
 import { createBrowserRouter } from "react-router-dom"
 
 import PageLayout from "./components/layout/page-layout"
-
 import Dashboard from "./pages/dashboard/dashboard"
 import Modules from "./pages/modules/modules"
 import Playground from "./pages/playground/playground"

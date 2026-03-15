@@ -1,19 +1,22 @@
 import { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
-import TopBar from "@/components/Git & GitHub/TopBar"
-import GitGraph from "@/components/Git & GitHub/GitGraph"
-import Terminal from "@/components/Git & GitHub/Terminal"
-import type { TerminalEntry } from "@/components/Git & GitHub/Terminal"
-import MissionControl from "@/components/Git & GitHub/MissionControl"
+import TopBar from "@/pages/modules/git/Git & GitHub/TopBar"
+import GitGraph from "@/pages/modules/git/Git & GitHub/GitGraph"
+import Terminal from "@/pages/modules/git/Git & GitHub/Terminal"
+import type { TerminalEntry } from "@/pages/modules/git/Git & GitHub/Terminal"
+import MissionControl from "@/pages/modules/git/Git & GitHub/MissionControl"
 import { processCommand } from "@/lib/gitSimulator"
 import type { GitState, Commit } from "@/lib/gitSimulator"
 import { allMissions, doesCommandCompleteStep } from "@/lib/mission.utils"
 import type { Mission } from "@/lib/mission.utils"
 import { generateGitMissions } from "@/services/git-missions.service"
 import "./GitLearningPage.css"
+import AIAssistant from "@/components/layout/ai/ai-assistant.tsx"
 
 /* Build initial GitState from any mission's graph data */
 function buildInitialState(mission: Mission): GitState {
+
+
   const mg = mission.initialGraphState
   const commits: Record<string, Commit> = {}
 
@@ -78,6 +81,10 @@ export default function GitLearningPage() {
     setNewCommitId(null)
     setInputValue("")
   }, [])
+
+  //AI Assistant context
+  const currentModule = "Git"
+  const currentTopic = mission.title
 
   useEffect(() => {
     let cancelled = false
@@ -313,6 +320,7 @@ export default function GitLearningPage() {
           </div>
         </div>
       )}
+      <AIAssistant module={currentModule} topic={currentTopic} />
     </div>
   )
 }
