@@ -23,7 +23,7 @@ function Command({
     <CommandPrimitive
       data-slot="command"
       className={cn(
-        "flex size-full flex-col overflow-hidden rounded-xl! bg-popover p-1 text-popover-foreground",
+        "flex size-full flex-col overflow-hidden rounded-[28px]! bg-transparent text-foreground",
         className
       )}
       {...props}
@@ -52,7 +52,7 @@ function CommandDialog({
       </DialogHeader>
       <DialogContent
         className={cn(
-          "top-[28%] translate-y-0 overflow-hidden rounded-xl! p-0 sm:max-w-[520px] border border-(--border-subtle) bg-(--bg-elevated) shadow-2xl",
+          "top-[18%] translate-y-0 overflow-hidden rounded-[30px]! border border-border bg-(--bg-elevated)/96 p-0 shadow-[0_24px_90px_rgba(0,0,0,0.5)] backdrop-blur-xl sm:max-w-160",
           className
         )}
         showCloseButton={showCloseButton}
@@ -68,12 +68,12 @@ function CommandInput({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div data-slot="command-input-wrapper" className="p-3 pb-0">
-      <InputGroup className="h-10! rounded-lg! border-(--border-subtle) bg-(--bg-surface) shadow-none! *:data-[slot=input-group-addon]:pl-3!">
+    <div data-slot="command-input-wrapper" className="p-4 pb-0">
+      <InputGroup className="h-12! rounded-2xl! border-border bg-(--bg-surface) shadow-none! transition-[border-color,box-shadow,background-color] focus-within:border-primary focus-within:bg-(--bg-elevated) focus-within:shadow-[0_0_0_4px_rgba(139,92,246,0.14)] *:data-[slot=input-group-addon]:pl-4!">
         <CommandPrimitive.Input
           data-slot="command-input"
           className={cn(
-            "w-full text-sm outline-hidden placeholder:text-(--text-tertiary) disabled:cursor-not-allowed disabled:opacity-50",
+            "w-full bg-transparent text-[15px] text-foreground outline-none! ring-0! placeholder:text-(--text-tertiary) focus-visible:outline-none! focus-visible:ring-0! focus-visible:ring-offset-0! disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}
@@ -94,7 +94,7 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "no-scrollbar max-h-80 scroll-py-1 overflow-x-hidden overflow-y-auto outline-none p-2",
+        "no-scrollbar max-h-105 scroll-py-1 overflow-x-hidden overflow-y-auto px-4 pb-4 pt-3 outline-none",
         className
       )}
       {...props}
@@ -123,7 +123,7 @@ function CommandGroup({
     <CommandPrimitive.Group
       data-slot="command-group"
       className={cn(
-        "overflow-hidden p-1 text-foreground **:[[cmdk-group-heading]]:px-2 **:[[cmdk-group-heading]]:py-2 **:[[cmdk-group-heading]]:text-[11px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-wider **:[[cmdk-group-heading]]:text-(--text-tertiary)",
+        "overflow-hidden py-2 text-foreground **:[[cmdk-group-heading]]:px-1 **:[[cmdk-group-heading]]:pb-2 **:[[cmdk-group-heading]]:pt-1 **:[[cmdk-group-heading]]:text-[11px] **:[[cmdk-group-heading]]:font-semibold **:[[cmdk-group-heading]]:uppercase **:[[cmdk-group-heading]]:tracking-[0.18em] **:[[cmdk-group-heading]]:text-(--text-tertiary)",
         className
       )}
       {...props}
@@ -153,7 +153,7 @@ function CommandItem({
     <CommandPrimitive.Item
       data-slot="command-item"
       className={cn(
-        "group/command-item relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm outline-hidden select-none text-(--text-secondary) transition-colors in-data-[slot=dialog-content]:rounded-lg! data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:bg-(--bg-surface) data-selected:text-(--text-primary) [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-selected:*:[svg]:text-(--accent)",
+        "group/command-item relative flex cursor-pointer items-center gap-3 rounded-2xl border border-transparent px-3 py-3 text-sm select-none text-(--text-secondary) transition-[background-color,border-color,color,transform] outline-none in-data-[slot=dialog-content]:rounded-2xl! data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50 data-selected:border-[rgba(139,92,246,0.35)] data-selected:bg-[linear-gradient(135deg,rgba(139,92,246,0.16)_0%,rgba(139,92,246,0.05)_100%)] data-selected:text-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-selected:*:[svg]:text-(--accent)",
         className
       )}
       {...props}

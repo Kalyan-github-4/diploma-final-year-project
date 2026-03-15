@@ -1,0 +1,321 @@
+/* =====================================================
+   CODEKING — GLOBAL STYLES
+   Tailwind + shadcn + Design Tokens
+   ===================================================== */
+
+/* -------------------------------
+   Imports
+-------------------------------- */
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+.font-sans {
+  font-family: 'Public Sans', sans-serif;
+}
+
+.font-grotesk {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* -------------------------------
+   Base Reset
+-------------------------------- */
+@layer base {
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+
+}
+
+/* =====================================================
+   CORE TOKENS (Never change between themes)
+   ===================================================== */
+
+
+/* =====================================================
+   DARK THEME (DEFAULT)
+   ===================================================== */
+
+:root,
+[data-theme="dark"] {
+
+  /* Backgrounds */
+  --bg-primary: #0D0D0D;
+  --bg-elevated: #161616;
+  --bg-surface: #1E1E1E;
+
+  /* Borders */
+  --border-subtle: #2A2A2A;
+  --border-hover: #3D3D3D;
+  --border-focus: #8B5CF6;
+
+  /* Text */
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #6B6B6B;
+  --text-disabled: #3D3D3D;
+
+  /* Accent */
+  --accent: #8B5CF6;
+  --accent-hover: #7C3AED;
+  --accent-active: #6D28D9;
+
+  /* Status Colors */
+  --success: #22C55E;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+
+  /* Components */
+  --card-bg: var(--bg-elevated);
+  --card-border: var(--border-subtle);
+
+  /* Sidebar */
+  --sidebar-bg: var(--bg-elevated);
+  --sidebar-border: var(--border-subtle);
+
+  /* Topbar */
+  --topbar-bg: var(--bg-elevated);
+  --topbar-border: var(--border-subtle);
+
+  /* Terminal */
+  --terminal-bg: #0A0A0A;
+  --terminal-text: #22C55E;
+
+  /* XP / Progress */
+  --xp-bar: #6366F1;
+  --xp-bar-bg: rgba(99,102,241,0.15);
+
+  /* Scrollbar */
+  --scrollbar-track: var(--bg-elevated);
+  --scrollbar-thumb: var(--border-hover);
+  --scrollbar-hover: #4D4D4D;
+
+}
+
+/* =====================================================
+   LIGHT THEME
+   ===================================================== */
+
+[data-theme="light"] {
+
+  --bg-primary: #F5F5F5;
+  --bg-elevated: #FFFFFF;
+  --bg-surface: #F0F0F0;
+
+  --border-subtle: #E2E2E2;
+  --border-hover: #C8C8C8;
+  --border-focus: #6366F1;
+
+  --text-primary: #111111;
+  --text-secondary: #555555;
+  --text-tertiary: #777777; /* Darkened from #999999 for better contrast */
+  --text-disabled: #CCCCCC;
+
+  --accent: #8B5CF6;
+  --accent-hover: #7C3AED;
+  --accent-active: #6D28D9;
+
+  --success: #16A34A;
+  --danger: #DC2626;
+  --warning: #D97706;
+  --info: #2563EB;
+
+  --card-bg: var(--bg-elevated);
+  --card-border: var(--border-subtle);
+
+  --sidebar-bg: var(--bg-elevated);
+  --sidebar-border: var(--border-subtle);
+
+  --topbar-bg: var(--bg-elevated);
+  --topbar-border: var(--border-subtle);
+
+  --terminal-bg: #1A1A1A;
+  --terminal-text: #22C55E;
+
+  --xp-bar: #6366F1;
+  --xp-bar-bg: rgba(99,102,241,0.12);
+
+  --scrollbar-track: var(--bg-surface);
+  --scrollbar-thumb: var(--border-hover);
+  --scrollbar-hover: #AAAAAA;
+
+}
+
+/* =====================================================
+   SYSTEM PREFERENCE THEME SUPPORT
+   ===================================================== */
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary: #F5F5F5;
+    --bg-elevated: #FFFFFF;
+    --bg-surface: #F0F0F0;
+
+    --border-subtle: #E2E2E2;
+    --border-hover: #C8C8C8;
+    --border-focus: #6366F1;
+
+    --text-primary: #111111;
+    --text-secondary: #555555;
+    --text-tertiary: #777777;
+    --text-disabled: #CCCCCC;
+
+    --accent: #8B5CF6;
+    --accent-hover: #7C3AED;
+    --accent-active: #6D28D9;
+
+    --success: #16A34A;
+    --danger: #DC2626;
+    --warning: #D97706;
+    --info: #2563EB;
+
+    --card-bg: var(--bg-elevated);
+    --card-border: var(--border-subtle);
+
+    --sidebar-bg: var(--bg-elevated);
+    --sidebar-border: var(--border-subtle);
+
+    --topbar-bg: var(--bg-elevated);
+    --topbar-border: var(--border-subtle);
+
+    --terminal-bg: #1A1A1A;
+    --terminal-text: #22C55E;
+
+    --xp-bar: #6366F1;
+    --xp-bar-bg: rgba(99,102,241,0.12);
+
+    --scrollbar-track: var(--bg-surface);
+    --scrollbar-thumb: var(--border-hover);
+    --scrollbar-hover: #AAAAAA;
+  }
+}
+
+/* =====================================================
+   HIGH CONTRAST MODE SUPPORT
+   ===================================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    --border-subtle: #000000;
+    --border-hover: #000000;
+    --text-secondary: #000000;
+    --text-tertiary: #222222;
+    --text-disabled: #666666;
+  }
+
+  [data-theme="light"] {
+    --border-subtle: #000000;
+    --border-hover: #000000;
+    --text-secondary: #000000;
+    --text-tertiary: #222222;
+    --bg-primary: #FFFFFF;
+    --bg-elevated: #FFFFFF;
+  }
+
+  [data-theme="dark"] {
+    --border-subtle: #FFFFFF;
+    --border-hover: #FFFFFF;
+    --text-secondary: #FFFFFF;
+    --text-tertiary: #DDDDDD;
+    --bg-primary: #000000;
+    --bg-elevated: #000000;
+  }
+}
+
+/* =====================================================
+   TAILWIND / SHADCN TOKEN BRIDGE
+   ===================================================== */
+
+@theme inline {
+
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+
+  --color-card: var(--card-bg);
+
+  --color-primary: var(--accent);
+  --color-primary-foreground: white;
+
+  --color-border: var(--border-subtle);
+  --color-ring: var(--accent);
+
+}
+
+/* =====================================================
+   GLOBAL UI STYLES
+   ===================================================== */
+
+/* Selection */
+::selection {
+  background: rgba(99,102,241,0.2);
+  color: var(--text-primary);
+}
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* Firefox scrollbar (optional) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* =====================================================
+   TAILWIND BASE LAYER
+   ===================================================== */
+
+@layer base {
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+}

@@ -6,10 +6,11 @@ import {
   TrendingUp,
   Trophy,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Settings
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 
 const navigationItems = [
@@ -21,115 +22,175 @@ const navigationItems = [
   { title: "Leaderboard", icon: Trophy, path: "/leaderboard" },
 ];
 
-const Sidebar = () => {
+export default function Sidebar() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const [logoHovered, setLogoHovered] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <motion.div
-      animate={{ width: collapsed ? "80px" : "239px" }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="h-full flex flex-col bg-(--bg-surface) border-r border-border overflow-hidden"
+    <motion.aside
+      animate={{ width: collapsed ? 78 : 248 }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      className="relative h-screen bg-(--bg-surface) border-r border-border flex flex-col"
     >
-      {/* Logo */}
-      <div className="h-20 flex items-center px-4 gap-3 shrink-0">
+      {/* LOGO */}
+      {/* LOGO */}
+      <div
+        className={`h-24 shrink-0 ${collapsed
+          ? "flex items-center justify-center"
+          : "flex items-center gap-3 px-4"
+          }`}
+      >
         <div
-          className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white font-bold text-sm shrink-0 cursor-ew-resize" onMouseEnter={() => collapsed && setLogoHovered(true)}
-          onMouseLeave={() => setLogoHovered(false)}
-          onClick={() => collapsed && setCollapsed(false)}>
-          {collapsed && logoHovered
-            ? <PanelLeftOpen className="w-4 h-4" />
-            : <span>CK</span>
-          }
+          className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 
+          flex items-center justify-center text-white font-bold text-sm shadow-sm"
+        >
+          CK
         </div>
 
-        {!collapsed && (
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="font-semibold text-lg whitespace-nowrap flex-1 font-grotesk"
-          >
-            CodeKing
-          </motion.span>
-        )}
-
-        {/* Collapse button — only visible when expanded */}
-        {!collapsed && (
-          <button
-            onClick={() => setCollapsed(true)}
-            className="p-1 rounded hover:bg-(--bg-elevated) text-(--text-secondary) shrink-0 ml-auto cursor-ew-resize"
-          >
-            <PanelLeftClose className="w-5 h-5" />
-          </button>
-        )}
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.span
+              initial={{ opacity: 0, x: -6 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -6 }}
+              transition={{ duration: 0.15 }}
+              className="font-semibold text-[17px] tracking-tight"
+            >
+              CodeKing
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Navigation */}
-      <div className="px-3 flex flex-col gap-1">
+      {/* NAV */}
+      <nav className="px-3 flex flex-col gap-1.5">
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
 
           return (
-            <Link to={item.path} key={item.path} className="relative block">
+            <Link key={item.path} to={item.path} className="relative block">
               {active && (
                 <motion.div
-                  layoutId="activeNav"
-                  className="absolute inset-0 bg-(--accent-active)/30 rounded-lg"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  layoutId="activeRail"
+                  className="absolute -left-3 top-1/2 h-10 w-[3px] -translate-y-1/2 rounded-r-full bg-(--accent)"
+                  transition={{ duration: 0.2, ease: "easeInOut" }}
                 />
               )}
               <motion.div
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg relative z-10
-                  ${collapsed ? "justify-center" : "justify-start"}
-                  ${active ? "text-foreground" : "text-(--text-secondary) hover:bg-(--bg-elevated)"}`}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                whileTap={{ scale: 0.985, opacity: 0.96 }}
+                transition={{ duration: 0.14, ease: "easeOut" }}
+                className={`
+                  h-10 rounded-xl flex items-center
+                  transition-all duration-200
+                  ${collapsed ? "justify-center px-0" : "gap-3 px-3"}
+                  ${active
+                    ? "bg-(--bg-elevated) text-foreground shadow-sm"
+                    : "text-(--text-secondary) hover:bg-(--bg-elevated) hover:text-foreground"
+                  }
+                `}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="whitespace-nowrap font-grotesk text-base"
-                  >
-                    {item.title}
-                  </motion.span>
-                )}
+                <div
+                  className={`
+                    w-8 h-8 shrink-0 rounded-lg flex items-center justify-center
+                    ${active ? "text-(--accent)" : ""}
+                  `}
+                >
+                  <Icon size={17} />
+                </div>
+
+                <AnimatePresence>
+                  {!collapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className={`flex-1 text-[15px] leading-none ${active ? "font-semibold" : "font-medium"
+
+                        } ${active ? "text-(--accent)" : ""}`}
+                    >
+                      {item.title}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </motion.div>
             </Link>
           );
         })}
-      </div>
+      </nav>
 
-      {/* Profile */}
-      <div className="mt-auto p-4 border-t border-border">
-        <motion.div
-          className={`flex items-center gap-3 px-3 py-2 rounded-xl cursor-pointer ${collapsed ? "justify-center" : ""}`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white font-bold text-sm shrink-0">
-            K
-          </div>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-sm"
-            >
-              <div className="font-medium">Kalyan</div>
-              <div className="text-xs opacity-60">Student</div>
-            </motion.div>
-          )}
-        </motion.div>
+
+
+
+
+      <div className="mt-auto border-t border-border">
+
+        {/* COLLAPSE BUTTON */}
+        <div className="px-3 pt-2">
+          <motion.button
+            onClick={() => setCollapsed(!collapsed)}
+            whileTap={{ scale: 0.985, opacity: 0.96 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className={`
+              w-full h-10 rounded-xl flex items-center
+              text-(--text-secondary) hover:bg-(--bg-elevated) hover:text-foreground
+              transition-colors duration-200
+              ${collapsed ? "justify-center px-0" : "gap-3 px-3"}
+            `}
+          >
+            <div className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center">
+              {collapsed ? <PanelLeftOpen size={17} /> : <PanelLeftClose size={17} />}
+            </div>
+
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.span
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-[15px] font-medium font-grotesk"
+                >
+                  Collapse
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        </div>
+
+        {/* PROFILE */}
+        <div className="p-3 flex">
+          <motion.div
+            whileTap={{ scale: 0.985, opacity: 0.96 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className={`w-full rounded-xl cursor-pointer hover:bg-(--bg-elevated) transition-colors duration-200
+            ${collapsed ? "flex justify-center px-0 py-2" : "flex items-center gap-3 px-2 py-2"}`}
+          >
+            <div className="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 text-white flex items-center justify-center font-semibold">
+              K
+            </div>
+
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="leading-tight min-w-0"
+                >
+                  <div className="text-sm font-medium text-foreground font-grotesk">Kalyan</div>
+                  <div className="text-xs text-(--text-secondary)">Student</div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <Settings size={18} className="flex-1 text-(--text-secondary)"/>
+          </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </motion.aside>
   );
-};
-
-export default Sidebar;
+}

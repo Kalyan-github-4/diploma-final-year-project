@@ -13,19 +13,19 @@ export const Notification = () => {
                 variant="ghost"
                 onClick={() => setIsOpen(true)}
             >
-                <Bell />
+                <Bell size={20}/>
             </Button>
 
             <Drawer
                 isOpen={isOpen}
                 onClose={() => setIsOpen(false)}
-                title="Example Drawer"
+                title="Notifications"
                 position="right"
                 size="md"
             >
                 <div className="p-6">
                     <p className="text-gray-600 dark:text-gray-300">
-                        This is the drawer content. You can put anything here!
+                        You have no new notifications.
                     </p>
                 </div>
             </Drawer>

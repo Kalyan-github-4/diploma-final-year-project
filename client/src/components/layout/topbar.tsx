@@ -5,7 +5,7 @@ import { Notification } from "./notification";
 const Topbar = () => {
 
   return (
-    <div className="w-full bg-(--bg-primary) h-16 flex items-center justify-between px-6 border-b border-(--border-subtle)">
+    <div className="w-full bg-background h-16 flex items-center justify-between px-6 border-b border-border">
 
       {/* Left */}
       <div className="text-[18px] font-medium">
@@ -16,25 +16,13 @@ const Topbar = () => {
       <div className="flex items-center justify-around gap-4">
 
         {/* Search Button (shadcn style) */}
-        <div>
-          <SearchCommand/>
-        </div>
+        <SearchCommand />
 
         {/* Notification */}
-        
-         <Notification/>
-
-          {/* Notification Dot */}
-          {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
-      
-
-        {/* Avatar */}
-        {/* <div className="flex items-center gap-2 cursor-pointer">
-          <div className="w-8 h-8 rounded-full bg-gray-400"></div>
-        </div> */}
-
+        <Notification />
+        <div className="h-6 w-px bg-[#3D3D3D] opacity-60"></div>
         {/* Theme Toggle Placeholder */}
-        <ThemeToggle/>
+        <ThemeToggle />
       </div>
     </div>
   );
