@@ -1,0 +1,84 @@
+/* ─── Git Top Bar ─── */
+
+.git-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 56px;
+}
+
+.git-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.git-topbar__mission-label {
+  font-family: 'Public Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.git-topbar__mission-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.git-topbar__live-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  background: rgba(99, 102, 241, 0.12);
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.git-topbar__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.git-topbar__center {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.git-topbar__timer-label {
+  color: var(--text-secondary);
+  margin-right: 4px;
+}
+
+.git-topbar__run-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.git-topbar__run-btn:hover {
+  background: var(--accent-hover);
+}

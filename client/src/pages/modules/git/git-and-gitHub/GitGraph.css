@@ -1,0 +1,89 @@
+/* ─── Git Graph ─── */
+
+.git-graph {
+  position: relative;
+  flex: 1;
+  background: var(--bg-primary);
+  padding: 32px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.git-graph__svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Commit Node ─── */
+
+.commit-node__circle {
+  fill: var(--bg-surface);
+  stroke-width: 2;
+  transition: all 0.3s ease;
+}
+
+.commit-node__circle--head {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.5));
+}
+
+.commit-node--enter {
+  animation: nodeAppear 0.3s ease forwards;
+}
+
+@keyframes nodeAppear {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ─── Commit Label ─── */
+
+.commit-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  fill: var(--text-tertiary);
+}
+
+.commit-label__hash {
+  fill: var(--text-secondary);
+}
+
+/* ─── Branch Label ─── */
+
+.branch-label__pill {
+  rx: 6;
+  ry: 6;
+  opacity: 0.15;
+}
+
+.branch-label__text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* ─── HEAD Pointer ─── */
+
+.head-pointer__text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  fill: var(--text-secondary);
+}
+
+/* ─── Connection Lines ─── */
+
+.git-graph__line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.git-graph__line--animate {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: drawLine 0.4s ease forwards;
+}
+
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}

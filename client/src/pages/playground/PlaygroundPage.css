@@ -1,0 +1,125 @@
+/* ─── Playground Page ─── */
+
+.playground {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.playground__header {
+  padding-bottom: 20px;
+}
+
+.playground__title {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.playground__tagline {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* ─── Environment Selector ─── */
+
+.playground__env-selector {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.playground__env-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.playground__env-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.playground__env-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated, #141414);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.playground__env-tab:hover:not(:disabled) {
+  border-color: var(--accent, #6366F1);
+  color: var(--text-primary);
+}
+
+.playground__env-tab--active {
+  border-color: var(--accent, #6366F1);
+  background: var(--accent, #6366F1);
+  color: #fff;
+}
+
+.playground__env-tab--active:hover {
+  background: var(--accent, #6366F1);
+  color: #fff;
+}
+
+.playground__env-tab--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.playground__env-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ─── Arena ─── */
+
+.playground__arena {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  height: calc(100vh - 280px);
+  min-height: 520px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Coming Soon ─── */
+
+.playground__coming-soon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: var(--bg-elevated, #141414);
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+.playground__coming-soon-icon {
+  opacity: 0.3;
+}
