@@ -12,6 +12,7 @@ export const Notification = () => {
             <Button
                 variant="ghost"
                 onClick={() => setIsOpen(true)}
+                className='hover:bg-(--bg-elevated) transition-colors cursor-pointer'
             >
                 <Bell size={20}/>
             </Button>

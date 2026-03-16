@@ -7,7 +7,10 @@ const hideTopbarRoutes = ["/modules/css-flexbox", "/modules/git", "/modules/layo
 
 const PageLayout = () => {
   const { pathname } = useLocation()
-  const showTopbar = !hideTopbarRoutes.includes(pathname)
+  // Hide topbar for known full-screen pages and all level learning routes
+  const showTopbar =
+    !hideTopbarRoutes.includes(pathname) &&
+    !/\/modules\/[^/]+\/level\//.test(pathname)
 
   return (
     <div className="flex h-screen">

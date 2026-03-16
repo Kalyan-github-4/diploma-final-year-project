@@ -7,7 +7,6 @@ import {
   Trophy,
   PanelLeftClose,
   PanelLeftOpen,
-  Settings
 } from "lucide-react";
 import { useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -43,7 +42,7 @@ export default function Sidebar() {
           }`}
       >
         <div
-          className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 
+          className="w-9 h-9 rounded-xl bg-linear-to-br from-indigo-500 to-violet-500 
           flex items-center justify-center text-white font-bold text-sm shadow-sm"
         >
           CK
@@ -75,7 +74,7 @@ export default function Sidebar() {
               {active && (
                 <motion.div
                   layoutId="activeRail"
-                  className="absolute -left-3 top-1/2 h-10 w-[3px] -translate-y-1/2 rounded-r-full bg-(--accent)"
+                  className="absolute -left-3 top-1/2 h-10 w-0.75 -translate-y-1/2 rounded-r-full bg-(--accent)"
                   transition={{ duration: 0.2, ease: "easeInOut" }}
                 />
               )}
@@ -163,32 +162,37 @@ export default function Sidebar() {
 
         {/* PROFILE */}
         <div className="p-3 flex">
-          <motion.div
-            whileTap={{ scale: 0.985, opacity: 0.96 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-            className={`w-full rounded-xl cursor-pointer hover:bg-(--bg-elevated) transition-colors duration-200
-            ${collapsed ? "flex justify-center px-0 py-2" : "flex items-center gap-3 px-2 py-2"}`}
-          >
-            <div className="w-9 h-9 shrink-0 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 text-white flex items-center justify-center font-semibold">
-              K
-            </div>
+          <Link to="/profile" className="w-full">
+            <motion.div
+              whileTap={{ scale: 0.985, opacity: 0.96 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
+              className={`w-full rounded-xl transition-colors duration-200
+              ${isActive("/profile")
+                  ? "bg-(--bg-elevated)"
+                  : "cursor-pointer hover:bg-(--bg-elevated)"
+                }
+              ${collapsed ? "flex justify-center px-0 py-2" : "flex items-center gap-3 px-2 py-2"}`}
+            >
+              <div className="w-9 h-9 shrink-0 rounded-full bg-linear-to-br from-gray-400 to-gray-500 text-white flex items-center justify-center font-semibold">
+                K
+              </div>
 
-            <AnimatePresence>
-              {!collapsed && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                  className="leading-tight min-w-0"
-                >
-                  <div className="text-sm font-medium text-foreground font-grotesk">Kalyan</div>
-                  <div className="text-xs text-(--text-secondary)">Student</div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <Settings size={18} className="flex-1 text-(--text-secondary)"/>
-          </motion.div>
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="leading-tight min-w-0"
+                  >
+                    <div className="text-sm font-medium text-foreground font-grotesk">Kalyan</div>
+                    <div className="text-xs text-(--text-secondary)">Student</div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </Link>
         </div>
       </div>
     </motion.aside>

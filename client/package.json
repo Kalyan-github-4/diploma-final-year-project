@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
     "@fontsource-variable/geist": "^5.2.8",
     "@heroui/drawer": "^2.2.29",
     "@heroui/system": "^2.4.28",
@@ -20,6 +21,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "codemirror": "^6.0.2",
     "framer-motion": "^12.35.2",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.4.3",
