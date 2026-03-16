@@ -15,7 +15,7 @@ function getDb() {
 			ssl: "require",
 			max: 10,
 			idle_timeout: 20,
-			connect_timeout: 10,
+			connect_timeout: 60, // Neon free tier cold-starts can take 30-50s
 		})
 		db = drizzle(sqlClient)
 	}

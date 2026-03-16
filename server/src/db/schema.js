@@ -1,4 +1,4 @@
-const { pgTable, serial, text, integer, timestamp, jsonb } = require("drizzle-orm/pg-core")
+const { pgTable, serial, text, integer, boolean, timestamp, jsonb } = require("drizzle-orm/pg-core")
 
 const userProfiles = pgTable("user_profiles", {
   id: serial("id").primaryKey(),
@@ -22,11 +22,32 @@ const generatedMissions = pgTable("generated_missions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
-const modules = {
-  
-}
+const modulesTable = pgTable("modules", {
+  id: serial("id").primaryKey(),
+
+  slug: text("slug").notNull().unique(),   // git-github | dsa | layout-engineering
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+
+  category: text("category").notNull(),    // programming | cs-fundamentals | tools | frontend
+
+  difficulty: text("difficulty").notNull(), // beginner | intermediate | advanced
+  topicsCount: integer("topics_count").notNull(),
+
+  totalXp: integer("total_xp").notNull(),
+
+  icon: text("icon").notNull(),   // store icon key → gitFork | network | terminal
+  themeColor: text("theme_color").notNull(),
+
+  isLocked: boolean("is_locked").default(false),
+
+  orderIndex: integer("order_index").default(0),
+
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+})
 
 module.exports = {
   userProfiles,
   generatedMissions,
+  modulesTable,
 }
