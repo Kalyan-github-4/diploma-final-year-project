@@ -4,7 +4,7 @@
  */
 
 import { useState, useMemo } from 'react'
-import LayoutArena from '../Layout Engineering Module/LayoutArena'
+import LayoutArena from '../Layout-engineering-module/LayoutArena'
 import { LayoutEngineeringProvider } from '../../../context/layout-engineering.provider'
 import { useLayoutEngineering } from '../../../hooks/useLayoutEngineering'
 import { pathMetadata } from '@/lib/layout-paths.data'

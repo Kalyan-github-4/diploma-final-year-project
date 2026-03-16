@@ -1,16 +1,56 @@
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { modules } from "../modules/ModuleData"
+import type { ModuleCardProps } from "../modules/ModuleCard"
+import { useEffect, useState } from "react"
+import type { ModuleDTO } from "@/types/module"
+import { getIcon } from "@/lib/getIcon"
+import { ModuleGridSkeleton } from "../modules/ModuleGridSkeleton"
 
 const DashboardModuleCard = () => {
+    const [modules, setModules] = useState<ModuleCardProps[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const loadModules = async () => {
+            try {
+                const res = await fetch("/api/modules")
+                const data = await res.json()
+                setModules(data.slice(0, 3)) // Update with real data, still showing only first 3
+
+                const mappedModules = data.map((mod: ModuleDTO) => ({
+                    title: mod.title,
+                    description: mod.description,
+                    progress: 0,
+                    topics: mod.topicsCount,
+                    xp: mod.totalXp,
+                    level: mod.difficulty.toUpperCase(),
+                    status: "not-started" as const,
+                    icon: getIcon(mod.icon),
+                    color: mod.themeColor,
+                    link: `/modules/${mod.slug}`
+                }))
+                setModules(mappedModules)
+            } catch (error) {
+                console.error("Error fetching modules:", error)
+            } finally {
+                setLoading(false)
+            }
+
+        }
+        loadModules()
+    }, [])
+
     return (
         <div className="w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xl:gap-6">
-                {modules.slice(0, 3).map((module, index) => (
-                    <div
-                        key={index}
-                        className="bg-(--bg-elevated) border border-border 
-                        rounded-2xl p-4 xl:p-5 flex flex-col justify-between gap-3 min-w-0"
+                {loading ? (
+                    <ModuleGridSkeleton count={3} />
+                ) : (
+                    modules.slice(0, 3).map((module, index) => (
+                        <div
+                            key={index}
+                            className="bg-(--bg-elevated) border border-border 
+                            rounded-2xl p-4 xl:p-5 flex flex-col justify-between gap-3 min-w-0"
                     >
                         {/* Top row */}
                         <div className="flex justify-between items-start">
@@ -61,7 +101,7 @@ const DashboardModuleCard = () => {
                             </div>
                         </div>
                     </div>
-                ))}
+                )))}
             </div>
         </div>
     )

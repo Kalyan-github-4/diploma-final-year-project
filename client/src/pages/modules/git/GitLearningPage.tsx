@@ -1,15 +1,20 @@
-import { useState, useEffect, useCallback } from "react"
-import { useNavigate } from "react-router-dom"
-import TopBar from "@/pages/modules/git/Git & GitHub/TopBar"
-import GitGraph from "@/pages/modules/git/Git & GitHub/GitGraph"
-import Terminal from "@/pages/modules/git/Git & GitHub/Terminal"
-import type { TerminalEntry } from "@/pages/modules/git/Git & GitHub/Terminal"
-import MissionControl from "@/pages/modules/git/Git & GitHub/MissionControl"
+import { useState, useEffect, useCallback, useRef } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import TopBar from "@/pages/modules/git/git-and-gitHub/TopBar"
+import GitGraph from "@/pages/modules/git/git-and-gitHub/GitGraph"
+import Terminal from "@/pages/modules/git/git-and-gitHub/Terminal"
+import type { TerminalEntry } from "@/pages/modules/git/git-and-gitHub/Terminal"
+import MissionControl from "@/pages/modules/git/git-and-gitHub/MissionControl"
 import { processCommand } from "@/lib/gitSimulator"
 import type { GitState, Commit } from "@/lib/gitSimulator"
 import { allMissions, doesCommandCompleteStep } from "@/lib/mission.utils"
 import type { Mission } from "@/lib/mission.utils"
 import { generateGitMissions } from "@/services/git-missions.service"
+import {
+  gitLevels,
+  completeLevel,
+} from "@/pages/modules/git/levels.data"
+import LevelCompletionModal from "@/pages/modules/git/LevelCompletionModal"
 import "./GitLearningPage.css"
 import AIAssistant from "@/components/layout/ai/ai-assistant.tsx"
 
@@ -54,6 +59,20 @@ function buildInitialState(mission: Mission): GitState {
 
 export default function GitLearningPage() {
   const navigate = useNavigate()
+  const { slug = "git-github", levelId: rawLevelId = "1" } = useParams<{
+    slug: string
+    levelId: string
+  }>()
+  const levelId = Number(rawLevelId)
+  const levelData = gitLevels.find((l) => l.id === levelId) ?? gitLevels[0]
+
+  /* Retry key – incrementing re-triggers the mission generation effect */
+  const [retryKey, setRetryKey] = useState(0)
+  /* Track hint usage for star rating */
+  const [hintsUsed, setHintsUsed] = useState(0)
+  /* Guard against double-saving level completion */
+  const hasMarkedLevelComplete = useRef(false)
+
   const [missions, setMissions] = useState<Mission[]>(allMissions)
   const [missionIndex, setMissionIndex] = useState(0)
   const [isLoadingMissions, setIsLoadingMissions] = useState(true)
@@ -80,6 +99,7 @@ export default function GitLearningPage() {
     setShowHint(false)
     setNewCommitId(null)
     setInputValue("")
+    setHintsUsed(0)
   }, [])
 
   //AI Assistant context
@@ -90,14 +110,14 @@ export default function GitLearningPage() {
     let cancelled = false
 
     async function loadGeneratedMissions() {
+      setIsLoadingMissions(true)
       const userId = localStorage.getItem("codeking_user_id") || "guest-user"
-      const level = Number(localStorage.getItem("codeking_user_level") || "1")
 
       try {
         const generated = await generateGitMissions({
           userId,
-          level,
-          topic: "git-github",
+          level: levelId,
+          topic: levelData.topic,
         })
 
         if (cancelled) return
@@ -132,7 +152,7 @@ export default function GitLearningPage() {
     return () => {
       cancelled = true
     }
-  }, [resetMissionState])
+  }, [resetMissionState, levelId, levelData.topic, retryKey])
 
   /* Timer */
   useEffect(() => {
@@ -230,6 +250,29 @@ export default function GitLearningPage() {
     return `${m}:${sec}`
   }
 
+  /* Level-complete derived state */
+  const isLevelComplete = missionComplete && missionIndex + 1 >= missions.length
+
+  /* Save level progress once when the level is finished */
+  useEffect(() => {
+    if (isLevelComplete && !hasMarkedLevelComplete.current) {
+      hasMarkedLevelComplete.current = true
+      completeLevel(slug, levelId, levelData.xp)
+    }
+  }, [isLevelComplete, slug, levelId, levelData.xp])
+
+  /* Retry same level with fresh AI-generated questions */
+  const handleRetryLevel = useCallback(() => {
+    hasMarkedLevelComplete.current = false
+    setHintsUsed(0)
+    setRetryKey((k) => k + 1)
+  }, [])
+
+  /* Navigate to the next level */
+  const handleNextLevel = useCallback(() => {
+    navigate(`/modules/${slug}/level/${levelId + 1}`)
+  }, [navigate, slug, levelId])
+
   return (
     <div className="git-learning-page">
       {/* Zone 1: Top Bar */}
@@ -267,8 +310,11 @@ export default function GitLearningPage() {
           currentStep={currentStep}
           completedSteps={completedSteps}
           showHint={showHint}
-          onToggleHint={() => setShowHint((s) => !s)}
-          onSkip={() => navigate("/modules")}
+          onToggleHint={() => {
+            if (!showHint) setHintsUsed((h) => h + 1)
+            setShowHint((s) => !s)
+          }}
+          onSkip={() => navigate(`/modules/${slug}`)}
         />
       </div>
 
@@ -276,8 +322,8 @@ export default function GitLearningPage() {
         <div className="px-6 py-2 text-xs text-(--text-secondary)">{loadError}</div>
       )}
 
-      {/* Mission Complete Modal */}
-      {missionComplete && (
+      {/* ── Mid-level mission complete (more missions remaining) ── */}
+      {missionComplete && !isLevelComplete && (
         <div className="mission-overlay">
           <div className="mission-complete-modal">
             <h2 className="mission-complete-modal__heading">
@@ -297,29 +343,38 @@ export default function GitLearningPage() {
             <div className="mission-complete-modal__buttons">
               <button
                 className="mission-complete-modal__btn mission-complete-modal__btn--ghost"
-                onClick={() => navigate("/modules")}
+                onClick={() => navigate(`/modules/${slug}`)}
               >
-                Back to Modules
+                Back to Module
               </button>
               <button
                 className="mission-complete-modal__btn mission-complete-modal__btn--primary"
                 onClick={() => {
                   const nextIdx = missionIndex + 1
-                  if (nextIdx < missions.length) {
-                    setMissionIndex(nextIdx)
-                    const nextMission = missions[nextIdx]
-                    resetMissionState(nextMission)
-                  } else {
-                    navigate("/modules")
-                  }
+                  setMissionIndex(nextIdx)
+                  resetMissionState(missions[nextIdx])
                 }}
               >
-                {missionIndex + 1 < missions.length ? "Next Mission →" : "All Done! 🏆"}
+                Next Mission →
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ── Level complete — all missions in this level are done ── */}
+      {isLevelComplete && (
+        <LevelCompletionModal
+          levelData={levelData}
+          moduleSlug={slug}
+          timer={timer}
+          hintsUsed={hintsUsed}
+          isLastLevel={levelId >= gitLevels.length}
+          onRetry={handleRetryLevel}
+          onNextLevel={handleNextLevel}
+        />
+      )}
+
       <AIAssistant module={currentModule} topic={currentTopic} />
     </div>
   )
