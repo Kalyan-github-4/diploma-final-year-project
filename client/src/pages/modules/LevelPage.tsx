@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom"
 import GitLearningPage from "@/pages/modules/git/GitLearningPage"
+import DSALearningPage from "@/pages/modules/dsa/DSALearningPage"
 
 /**
  * Route entry point for /modules/:slug/level/:levelId
@@ -10,6 +11,10 @@ export default function LevelPage() {
 
   if (slug === "git-github") {
     return <GitLearningPage />
+  }
+
+  if (slug === "dsa") {
+    return <DSALearningPage />
   }
 
   // Other modules are not yet available

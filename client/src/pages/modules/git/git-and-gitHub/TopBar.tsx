@@ -1,9 +1,12 @@
 import "./TopBar.css"
+import AIAssistant from "@/components/layout/ai/ai-assistant"
 
 interface TopBarProps {
   missionTitle: string
   timer: number
   onRunTest: () => void
+  module?: string
+  topic?: string
 }
 
 function formatTime(seconds: number): string {
@@ -12,7 +15,7 @@ function formatTime(seconds: number): string {
   return `${m}:${s}`
 }
 
-export default function TopBar({ missionTitle, timer, onRunTest }: TopBarProps) {
+export default function TopBar({ missionTitle, timer, onRunTest, module, topic }: TopBarProps) {
   return (
     <div className="git-topbar">
       {/* Left */}
@@ -32,9 +35,12 @@ export default function TopBar({ missionTitle, timer, onRunTest }: TopBarProps) 
       </div>
 
       {/* Right */}
-      <button className="git-topbar__run-btn" onClick={onRunTest}>
-        Run Test
-      </button>
+      <div className="flex items-center gap-3">
+        <AIAssistant module={module} topic={topic} />
+        <button className="git-topbar__run-btn" onClick={onRunTest}>
+          Run Test
+        </button>
+      </div>
     </div>
   )
 }

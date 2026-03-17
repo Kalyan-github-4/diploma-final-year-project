@@ -1,10 +1,10 @@
 const badges = [
-  { title: "Bug Hunter", img: "/test-1.png" },
-  { title: "Bug Hunter", img: "/test-2.png" },
-  { title: "Bug Hunter", img: "/test-3.png" },
+  { title: "Scripting Guru", img: "/badge-1.png" },
+  { title: "Bug Hunter", img: "/badge-2.png" },
+  { title: "Code Master", img: "/badge-3.png" },
 ]
 
-const Achivement = () => {
+const Achievement = () => {
   return (
     <div className="bg-(--bg-elevated) rounded-3xl border border-border p-6 xl:p-7">
 
@@ -43,4 +43,4 @@ const Achivement = () => {
   )
 }
 
-export default Achivement
+export default Achievement

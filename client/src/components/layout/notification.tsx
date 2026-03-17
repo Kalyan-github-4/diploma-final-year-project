@@ -1,18 +1,21 @@
-// pages/example.tsx
 import { useState } from 'react'
 import { Drawer } from '@/components/ui/drawer'
 import { Bell } from 'lucide-react'
 import { Button } from '../ui/button'
 
-export const Notification = () => {
+interface NotificationProps {
+    className?: string
+}
+
+export const Notification = ({ className = '' }: NotificationProps) => {
     const [isOpen, setIsOpen] = useState(false)
 
     return (
-        <div className="p-4">
+        <div>
             <Button
                 variant="ghost"
                 onClick={() => setIsOpen(true)}
-                className='hover:bg-(--bg-elevated) transition-colors cursor-pointer'
+                className={`hover:bg-(--bg-surface) transition-colors cursor-pointer ${className}`}
             >
                 <Bell size={20}/>
             </Button>

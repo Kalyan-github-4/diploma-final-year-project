@@ -277,54 +277,34 @@
 
 /* ─── Badges ─── */
 
-.profile-badges-group + .profile-badges-group {
-  margin-top: 16px;
-}
-
 .profile-badge-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .profile-badge-card {
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 16px;
+  padding: 16px 12px 12px;
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   background: rgba(255, 255, 255, 0.02);
 }
 
-.profile-badge-card--locked {
-  opacity: 0.7;
-}
-
-.profile-badge-card--locked .profile-badge-card__icon {
-  filter: grayscale(1) blur(0.3px);
-}
-
-.profile-badge-card__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(99, 102, 241, 0.16);
-  flex-shrink: 0;
-  font-size: 20px;
+.profile-badge-card__image {
+  width: 100%;
+  max-width: 132px;
+  height: auto;
+  object-fit: contain;
 }
 
 .profile-badge-card__name {
   font-size: 14px;
   font-weight: 700;
-}
-
-.profile-badge-card__description,
-.profile-badge-card__date {
-  font-size: 12px;
-  color: var(--text-tertiary);
+  text-align: center;
 }
 
 /* ─── Heatmap ─── */

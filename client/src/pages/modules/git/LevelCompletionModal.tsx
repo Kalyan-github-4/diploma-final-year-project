@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import type { LevelData } from "./levels.data"
+import { Button } from "@/components/ui/button"
 
 interface LevelCompletionModalProps {
   levelData: LevelData
@@ -93,36 +94,36 @@ export default function LevelCompletionModal({
         <div className="flex flex-col gap-3">
           {/* Primary: next level or module summary */}
           {isLastLevel ? (
-            <button
+            <Button
               className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors"
               onClick={() => navigate(`/modules/${moduleSlug}/complete`)}
             >
               View Module Summary 🏆
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold transition-colors"
               onClick={onNextLevel}
             >
               Next Level →
-            </button>
+            </Button>
           )}
 
           {/* Secondary: retry with fresh AI questions */}
-          <button
+          <Button
             className="w-full py-3 rounded-xl border border-border hover:bg-background text-foreground font-medium transition-colors"
             onClick={onRetry}
           >
             Retry with New Questions
-          </button>
+          </Button>
 
           {/* Tertiary: back to level map */}
-          <button
+          <Button
             className="text-sm text-muted-foreground hover:text-foreground transition-colors mt-1"
             onClick={() => navigate(`/modules/${moduleSlug}`)}
           >
             ← Back to Module Map
-          </button>
+          </Button>
         </div>
 
       </div>

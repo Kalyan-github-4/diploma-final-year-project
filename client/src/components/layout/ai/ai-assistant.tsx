@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react"
-import { Bot, X } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
+import { Bot, SendHorizontal } from "lucide-react"
+import { Drawer } from "@/components/ui/drawer"
 
 type AIAssistantProp = {
   module?: string
@@ -21,19 +22,13 @@ export default function AIAssistant({ module, topic }: AIAssistantProp) {
   const [bubbleGreeting] = useState(
     () => greetings[Math.floor(Math.random() * greetings.length)]
   )
-  // Start with empty messages — greeting only lives in the bubble, not duplicated in chat
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([])
-  const [showGreetingBubble, setShowGreetingBubble] = useState(false)
   const [input, setInput] = useState("")
-  const panelRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const hasInteractedRef = useRef(false)
   const sendingRef = useRef(false)
+
   const openChat = () => {
     setOpen(true)
-    setShowGreetingBubble(false)
-    hasInteractedRef.current = true
-    // On first open, seed the chat with the greeting so it doesn't feel empty
     setMessages(prev =>
       prev.length === 0 ? [{ role: "bot", text: bubbleGreeting }] : prev
     )
@@ -42,10 +37,11 @@ export default function AIAssistant({ module, topic }: AIAssistantProp) {
   const sendMessage = async () => {
     if (!open) return
     if (!input.trim()) return
-    if (sendingRef.current) return // Prevent multiple sends
-    const userText = input
+    if (sendingRef.current) return
+    sendingRef.current = true
+    const userText = input.trim()
 
-    const userMessage = { role: "user", text: input }
+    const userMessage = { role: "user", text: userText }
     setInput("")
     const thinkingMsg = { role: "bot", text: "Thinking... 🤖" }
     setMessages(prev => [...prev, userMessage, thinkingMsg])
@@ -82,125 +78,89 @@ export default function AIAssistant({ module, topic }: AIAssistantProp) {
     }
   }
 
-  // Close panel on outside click or Escape key
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false)
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    document.addEventListener("keydown", handleEscape)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("keydown", handleEscape)
-    }
-  }, [])
-
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Show greeting bubble a few seconds after page load
-  useEffect(() => {
-    if (hasInteractedRef.current) return // Don't show if user has already interacted
-    const timer = setTimeout(() => setShowGreetingBubble(true), 4000)
-    return () => clearTimeout(timer)
-  }, [])
-
-  // Auto hide greeting bubble after it becomes visible
-  useEffect(() => {
-    if (!showGreetingBubble) return
-
-    const hideTimer = setTimeout(() => {
-      setShowGreetingBubble(false)
-    }, 7000) // bubble visible for 7 sec
-
-    return () => clearTimeout(hideTimer)
-  }, [showGreetingBubble])
-
-
-  const toggleChat = () => {
-    const next = !open
-    setOpen(next)
-    if (next) {
-      setShowGreetingBubble(false)
-      setMessages(m => m.length === 0 ? [{ role: "bot", text: bubbleGreeting }] : m)
-    }
-  }
   return (
     <>
-      {/* Chat Panel */}
-      {open && (
-        <div
-          className="fixed bottom-24 right-6 w-80 h-96 bg-(--bg-elevated) border border-border rounded-xl shadow-lg flex flex-col z-50"
-          ref={panelRef}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-border">
-            <div className="flex items-center gap-2">
-              <Bot size={18} />
-              <span className="text-sm font-medium">AI Assistant</span>
-            </div>
-            <button onClick={() => setOpen(false)}>
-              <X size={18} />
-            </button>
+      <button
+        type="button"
+        onClick={openChat}
+        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-(--bg-elevated) px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-(--bg-surface)"
+        aria-label="Open AI assistant"
+      >
+        <Bot size={18} />
+        <span className="hidden sm:inline">AI Assistant</span>
+      </button>
+
+      <Drawer
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        title="AI Assistant"
+        position="right"
+        size="lg"
+        className="border-l border-border bg-(--bg-elevated)"
+      >
+        <div className="flex h-full flex-col">
+          <div className="border-b border-border px-6 py-4">
+            <p className="text-sm font-medium text-foreground">Ask about {topic || "this topic"}</p>
+            <p className="mt-1 text-xs text-(--text-secondary)">Context: {module || "git"}</p>
           </div>
 
-          {/* Chat Area */}
-          <div className="flex-1 p-3 overflow-y-auto text-sm space-y-2">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5 text-sm">
             {messages.map((msg, index) => (
               <div
                 key={index}
-                className={`max-w-[75%] px-3 py-2 rounded-lg ${msg.role === "user"
-                  ? "ml-auto bg-(--accent) text-white"
-                  : "bg-(--bg-surface)"
-                  }`}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
-                {msg.text}
+                <div
+                  className={`max-w-[85%] rounded-2xl px-4 py-3 leading-6 ${msg.role === "user"
+                    ? "bg-(--accent) text-white"
+                    : "border border-border bg-(--bg-surface) text-foreground"
+                    }`}
+                >
+                  {msg.text}
+                </div>
               </div>
             ))}
+            {messages.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-border bg-(--bg-surface) px-4 py-5 text-(--text-secondary)">
+                Ask for hints, explanations, debugging help, or a step-by-step breakdown of the current lesson.
+              </div>
+            )}
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
-          <div className="p-2 border-t border-border">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-              placeholder="Ask something..."
-              className="w-full bg-(--bg-surface) rounded-md px-3 py-2 text-sm outline-none"
-            />
+          <div className="border-t border-border px-5 py-4">
+            <div className="flex items-end gap-3 rounded-2xl border border-border bg-(--bg-surface) p-3">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault()
+                    void sendMessage()
+                  }
+                }}
+                rows={1}
+                placeholder="Ask something..."
+                className="max-h-32 min-h-10 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-(--text-secondary)"
+              />
+              <button
+                type="button"
+                onClick={() => void sendMessage()}
+                disabled={!input.trim() || sendingRef.current}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-(--accent) text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Send message"
+              >
+                <SendHorizontal size={18} />
+              </button>
+            </div>
           </div>
         </div>
-      )}
-
-      {/* Greeting Bubble — sits above the FAB, no position conflict with the panel */}
-      {showGreetingBubble && !open && (
-        <div className="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-1 animate-fade-in">
-          <div
-            onClick={openChat}
-            className="max-w-55 bg-(--bg-elevated) border border-border shadow-lg rounded-xl px-3 py-2 text-sm cursor-pointer"
-          >
-            🤖 {bubbleGreeting}
-          </div>
-        </div>
-      )}
-
-      {/* Floating Button */}
-      <button
-        onClick={toggleChat}
-        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-(--accent) hover:bg-(--accent-hover) text-white flex items-center justify-center shadow-lg z-50 cursor-pointer"
-      >
-        <Bot size={24} />
-      </button>
+      </Drawer>
     </>
   )
 }

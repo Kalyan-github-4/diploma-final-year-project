@@ -1,6 +1,6 @@
 import SearchCommand from "../ui/SearchCommand";
-import { ThemeToggle } from "../theme-toggle";
 import { Notification } from "./notification";
+import AIAssistant from "./ai/ai-assistant";
 
 const Topbar = () => {
 
@@ -13,16 +13,14 @@ const Topbar = () => {
       </div>
 
       {/* Right */}
-      <div className="flex items-center justify-around gap-4">
+      <div className="flex items-center gap-4">
 
         {/* Search Button (shadcn style) */}
         <SearchCommand />
 
-        {/* Notification */}
-        <Notification />
+        <AIAssistant />
         <div className="h-6 w-px bg-[#3D3D3D] opacity-60"></div>
-        {/* Theme Toggle Placeholder */}
-        <ThemeToggle />
+        <Notification className="h-10 w-10 rounded-xl border border-border bg-(--bg-elevated)" />
       </div>
     </div>
   );

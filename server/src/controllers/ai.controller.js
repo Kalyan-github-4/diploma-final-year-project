@@ -24,7 +24,7 @@ const chatWithAI = async (req, res) => {
         if (message.includes("Gemini request failed (429)") || message.includes("rate limit")) {
             return res.status(429).json({
                 error: "AI rate limited",
-                message: "Gemini is rate-limiting requests right now. Please retry shortly.",
+                message: `Gemini is rate-limiting requests right now. ${message}`,
             })
         }
 

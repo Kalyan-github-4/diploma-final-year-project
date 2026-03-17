@@ -7,16 +7,16 @@ import type { TerminalEntry } from "@/pages/modules/git/git-and-gitHub/Terminal"
 import MissionControl from "@/pages/modules/git/git-and-gitHub/MissionControl"
 import { processCommand } from "@/lib/gitSimulator"
 import type { GitState, Commit } from "@/lib/gitSimulator"
-import { allMissions, doesCommandCompleteStep } from "@/lib/mission.utils"
+import { doesCommandCompleteStep } from "@/lib/mission.utils"
 import type { Mission } from "@/lib/mission.utils"
 import { generateGitMissions } from "@/services/git-missions.service"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   gitLevels,
   completeLevel,
 } from "@/pages/modules/git/levels.data"
 import LevelCompletionModal from "@/pages/modules/git/LevelCompletionModal"
 import "./GitLearningPage.css"
-import AIAssistant from "@/components/layout/ai/ai-assistant.tsx"
 
 /* Build initial GitState from any mission's graph data */
 function buildInitialState(mission: Mission): GitState {
@@ -57,6 +57,17 @@ function buildInitialState(mission: Mission): GitState {
   }
 }
 
+function buildEmptyState(): GitState {
+  return {
+    commits: {},
+    branches: {},
+    HEAD: { type: "branch", ref: "main" },
+    staging: [],
+    workingDir: [],
+    initialized: false,
+  }
+}
+
 export default function GitLearningPage() {
   const navigate = useNavigate()
   const { slug = "git-github", levelId: rawLevelId = "1" } = useParams<{
@@ -73,13 +84,13 @@ export default function GitLearningPage() {
   /* Guard against double-saving level completion */
   const hasMarkedLevelComplete = useRef(false)
 
-  const [missions, setMissions] = useState<Mission[]>(allMissions)
+  const [missions, setMissions] = useState<Mission[]>([])
   const [missionIndex, setMissionIndex] = useState(0)
   const [isLoadingMissions, setIsLoadingMissions] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const mission = missions[missionIndex] || allMissions[0]
+  const mission = missions[missionIndex] ?? null
 
-  const [gitState, setGitState] = useState<GitState>(() => buildInitialState(allMissions[0]))
+  const [gitState, setGitState] = useState<GitState>(() => buildEmptyState())
   const [terminalHistory, setTerminalHistory] = useState<TerminalEntry[]>([])
   const [inputValue, setInputValue] = useState("")
   const [currentStep, setCurrentStep] = useState(0)
@@ -102,15 +113,32 @@ export default function GitLearningPage() {
     setHintsUsed(0)
   }, [])
 
+  const resetToEmptyState = useCallback(() => {
+    setMissionComplete(false)
+    setGitState(buildEmptyState())
+    setTerminalHistory([])
+    setCurrentStep(0)
+    setCompletedSteps([])
+    setTimer(0)
+    setShowHint(false)
+    setNewCommitId(null)
+    setInputValue("")
+    setHintsUsed(0)
+  }, [])
+
   //AI Assistant context
   const currentModule = "Git"
-  const currentTopic = mission.title
+  const currentTopic = mission?.title ?? levelData.topic
 
   useEffect(() => {
     let cancelled = false
 
     async function loadGeneratedMissions() {
       setIsLoadingMissions(true)
+      setLoadError(null)
+      setMissions([])
+      setMissionIndex(0)
+      resetToEmptyState()
       const userId = localStorage.getItem("codeking_user_id") || "guest-user"
 
       try {
@@ -126,20 +154,13 @@ export default function GitLearningPage() {
           setMissions(generated)
           setMissionIndex(0)
           resetMissionState(generated[0])
-          setLoadError(null)
           return
         }
 
-        setMissions(allMissions)
-        setMissionIndex(0)
-        resetMissionState(allMissions[0])
-        setLoadError("No generated missions found. Loaded default missions.")
+        setLoadError("No AI-generated missions were returned for this level.")
       } catch {
         if (cancelled) return
-        setMissions(allMissions)
-        setMissionIndex(0)
-        resetMissionState(allMissions[0])
-        setLoadError("Server mission generation unavailable. Loaded default missions.")
+        setLoadError("Mission generation is unavailable right now. Please retry.")
       } finally {
         if (!cancelled) {
           setIsLoadingMissions(false)
@@ -152,14 +173,14 @@ export default function GitLearningPage() {
     return () => {
       cancelled = true
     }
-  }, [resetMissionState, levelId, levelData.topic, retryKey])
+  }, [resetMissionState, resetToEmptyState, levelId, levelData.topic, retryKey])
 
   /* Timer */
   useEffect(() => {
-    if (missionComplete) return
+    if (missionComplete || isLoadingMissions || !mission) return
     const interval = setInterval(() => setTimer((t) => t + 1), 1000)
     return () => clearInterval(interval)
-  }, [missionComplete])
+  }, [missionComplete, isLoadingMissions, mission])
 
   /* Current branch for terminal prompt */
   const currentBranch =
@@ -167,7 +188,7 @@ export default function GitLearningPage() {
 
   /* Process a command */
   const handleSubmit = useCallback(() => {
-    if (isLoadingMissions || missionComplete) return
+    if (isLoadingMissions || missionComplete || !mission) return
 
     const cmd = inputValue.trim()
     if (!cmd) return
@@ -230,18 +251,18 @@ export default function GitLearningPage() {
     }
 
     setInputValue("")
-  }, [isLoadingMissions, missionComplete, inputValue, gitState, currentBranch, currentStep, mission.steps])
+  }, [isLoadingMissions, missionComplete, mission, inputValue, gitState, currentBranch, currentStep])
 
   /* Run test: check if current step command works */
   const handleRunTest = useCallback(() => {
-    if (missionComplete) return
+    if (missionComplete || !mission) return
     const step = mission.steps[currentStep]
     if (!step) return
     setTerminalHistory((prev) => [
       ...prev,
       { type: "output", text: `\n▸ Testing: ${step.instruction.replace(/`/g, "")}`, outputType: "normal" },
     ])
-  }, [currentStep, mission.steps, missionComplete])
+  }, [currentStep, mission, missionComplete])
 
   /* Format timer for modal */
   const formatTime = (s: number) => {
@@ -251,7 +272,7 @@ export default function GitLearningPage() {
   }
 
   /* Level-complete derived state */
-  const isLevelComplete = missionComplete && missionIndex + 1 >= missions.length
+  const isLevelComplete = !!mission && missionComplete && missionIndex + 1 >= missions.length
 
   /* Save level progress once when the level is finished */
   useEffect(() => {
@@ -277,53 +298,82 @@ export default function GitLearningPage() {
     <div className="git-learning-page">
       {/* Zone 1: Top Bar */}
       <TopBar
-        missionTitle={isLoadingMissions ? "Loading mission..." : mission.title}
+        missionTitle={isLoadingMissions ? "Generating AI mission..." : mission?.title || "No mission available"}
         timer={timer}
         onRunTest={handleRunTest}
+        module={currentModule}
+        topic={currentTopic}
       />
 
       {/* Body: Main + Mission Control */}
       <div className="git-learning-page__body">
-        {/* Zone 2: Main Area */}
-        <div className="git-learning-page__main">
-          {/* Zone 2A: Git Graph */}
-          <div className="git-learning-page__graph">
-            <GitGraph gitState={gitState} newCommitId={newCommitId} />
-          </div>
+        {isLoadingMissions ? (
+          <>
+            <div className="git-learning-page__main git-learning-page__loading-main">
+              <div className="git-learning-page__graph git-learning-page__loading-panel">
+                <Skeleton className="h-full w-full rounded-none" />
+              </div>
+              <div className="git-learning-page__terminal git-learning-page__loading-panel">
+                <Skeleton className="h-full w-full rounded-none" />
+              </div>
+            </div>
+            <aside className="mission-control git-learning-page__loading-sidebar">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </aside>
+          </>
+        ) : mission ? (
+          <>
+            {/* Zone 2: Main Area */}
+            <div className="git-learning-page__main">
+              {/* Zone 2A: Git Graph */}
+              <div className="git-learning-page__graph">
+                <GitGraph gitState={gitState} newCommitId={newCommitId} />
+              </div>
 
-          {/* Zone 2B: Terminal */}
-          <div className="git-learning-page__terminal">
-            <Terminal
-              history={terminalHistory}
-              currentBranch={currentBranch}
-              inputValue={isLoadingMissions ? "" : inputValue}
-              onInputChange={setInputValue}
-              onSubmit={handleSubmit}
+              {/* Zone 2B: Terminal */}
+              <div className="git-learning-page__terminal">
+                <Terminal
+                  history={terminalHistory}
+                  currentBranch={currentBranch}
+                  inputValue={inputValue}
+                  onInputChange={setInputValue}
+                  onSubmit={handleSubmit}
+                />
+              </div>
+            </div>
+
+            {/* Zone 3: Mission Control */}
+            <MissionControl
+              xp={mission.xp}
+              steps={mission.steps}
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              showHint={showHint}
+              onToggleHint={() => {
+                if (!showHint) setHintsUsed((h) => h + 1)
+                setShowHint((s) => !s)
+              }}
+              onSkip={() => navigate(`/modules/${slug}`)}
             />
+          </>
+        ) : (
+          <div className="git-learning-page__empty-state">
+            <h3>No AI-generated missions yet</h3>
+            <p>{loadError || "Try generating this level again."}</p>
+            <button className="git-learning-page__retry-btn" onClick={handleRetryLevel}>
+              Retry mission generation
+            </button>
           </div>
-        </div>
-
-        {/* Zone 3: Mission Control */}
-        <MissionControl
-          xp={mission.xp}
-          steps={mission.steps}
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          showHint={showHint}
-          onToggleHint={() => {
-            if (!showHint) setHintsUsed((h) => h + 1)
-            setShowHint((s) => !s)
-          }}
-          onSkip={() => navigate(`/modules/${slug}`)}
-        />
+        )}
       </div>
 
-      {loadError && !missionComplete && (
-        <div className="px-6 py-2 text-xs text-(--text-secondary)">{loadError}</div>
-      )}
-
       {/* ── Mid-level mission complete (more missions remaining) ── */}
-      {missionComplete && !isLevelComplete && (
+      {mission && missionComplete && !isLevelComplete && (
         <div className="mission-overlay">
           <div className="mission-complete-modal">
             <h2 className="mission-complete-modal__heading">
@@ -374,8 +424,6 @@ export default function GitLearningPage() {
           onNextLevel={handleNextLevel}
         />
       )}
-
-      <AIAssistant module={currentModule} topic={currentTopic} />
     </div>
   )
 }

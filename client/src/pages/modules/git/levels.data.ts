@@ -182,9 +182,33 @@ export const gitBadges: BadgeData[] = [
   },
 ]
 
+export const dsaLevels: LevelData[] = [
+  {
+    id: 1,
+    title: "Binary Search Fundamentals",
+    subtitle: "indices · mid · divide-and-conquer",
+    topic: "binary-search",
+    xp: 280,
+    difficulty: "beginner",
+    questionsCount: 1,
+    icon: "🔎",
+  },
+  {
+    id: 2,
+    title: "Bubble Sort Visual Run",
+    subtitle: "passes · swaps · optimization",
+    topic: "bubble-sort",
+    xp: 320,
+    difficulty: "beginner",
+    questionsCount: 1,
+    icon: "🫧",
+  },
+]
+
 /* ── Module level registry ───────────────────────────────── */
 export const moduleLevelsMap: Record<string, LevelData[]> = {
   "git-github": gitLevels,
+  dsa: dsaLevels,
 }
 
 export function getModuleLevels(slug: string): LevelData[] {

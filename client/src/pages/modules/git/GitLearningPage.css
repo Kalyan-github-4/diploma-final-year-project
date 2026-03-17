@@ -38,3 +38,60 @@
   display: flex;
   overflow: hidden;
 }
+
+.git-learning-page__loading-main {
+  gap: 0;
+}
+
+.git-learning-page__loading-panel {
+  background: var(--card);
+}
+
+.git-learning-page__loading-sidebar {
+  width: 380px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+}
+
+.git-learning-page__empty-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  padding: 20px;
+}
+
+.git-learning-page__empty-state h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.git-learning-page__empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.git-learning-page__retry-btn {
+  border: 1px solid var(--border);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 8px;
+  height: 38px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.git-learning-page__retry-btn:hover {
+  opacity: 0.92;
+}

@@ -43,61 +43,10 @@ const SKILLS = [
   },
 ]
 
-const ALL_BADGES: Badge[] = [
-  {
-    id: "branch-master",
-    icon: "🌿",
-    name: "Branch Master",
-    description: "Complete all branching topics",
-    earnedAt: "Feb 18, 2026",
-  },
-  {
-    id: "merge-hero",
-    icon: "⚔️",
-    name: "Merge Hero",
-    description: "Complete all merging topics",
-    earnedAt: "Mar 03, 2026",
-  },
-  {
-    id: "conflict-resolver",
-    icon: "🧩",
-    name: "Conflict Resolver",
-    description: "Solve 5 merge conflicts",
-    earnedAt: "Mar 08, 2026",
-  },
-  {
-    id: "rebase-ninja",
-    icon: "🥷",
-    name: "Rebase Ninja",
-    description: "Complete rebase topic",
-    earnedAt: "Mar 10, 2026",
-  },
-  { id: "code-king", icon: "👑", name: "Code King 👑", description: "Reach LVL 40", unlockCondition: "Reach LVL 40" },
-  {
-    id: "streak-7",
-    icon: "🔥",
-    name: "7 Day Streak",
-    description: "Maintain 7 day streak",
-    earnedAt: "Jan 29, 2026",
-  },
-  { id: "streak-21", icon: "🔥", name: "21 Day Streak", description: "Maintain 21 day streak", unlockCondition: "Maintain 21 day streak" },
-  {
-    id: "perfect-score",
-    icon: "💯",
-    name: "Perfect Score",
-    description: "Get 100% on any challenge",
-    earnedAt: "Feb 11, 2026",
-  },
-  { id: "speed-runner", icon: "⏱️", name: "Speed Runner", description: "Complete challenge under 3 min", unlockCondition: "Complete challenge under 3 min" },
-  {
-    id: "css-wizard",
-    icon: "🪄",
-    name: "CSS Wizard",
-    description: "Complete all CSS topics",
-    unlockCondition: "Complete all CSS topics",
-  },
-  { id: "dsa-master", icon: "🧠", name: "DSA Master", description: "Complete all DSA topics", unlockCondition: "Complete all DSA topics" },
-  { id: "streak-100", icon: "🔥", name: "100 Day Streak", description: "Maintain 100 day streak", unlockCondition: "Maintain 100 day streak" },
+const PROFILE_BADGES: Badge[] = [
+  { id: "badge-1", name: "Scripting Guru", image: "/badge-1.png" },
+  { id: "badge-2", name: "Bug Hunter", image: "/badge-2.png" },
+  { id: "badge-3", name: "Code Master", image: "/badge-3.png" },
 ]
 
 function generateYearActivity() {
@@ -161,9 +110,6 @@ export default function ProfilePage() {
   const activityDays = useMemo(() => generateYearActivity(), [])
   const activeDays = activityDays.filter((d) => d.xp > 0).length
 
-  const earnedBadges = ALL_BADGES.filter((badge) => Boolean(badge.earnedAt))
-  const lockedBadges = ALL_BADGES.filter((badge) => !badge.earnedAt)
-
   return (
     <div className="profile-page font-sans">
       <ProfileHeader
@@ -182,7 +128,7 @@ export default function ProfilePage() {
 
       <QuickStats stats={QUICK_STATS} />
       <SkillsSnapshot modules={SKILLS} />
-      <BadgeGrid earned={earnedBadges} locked={lockedBadges} />
+      <BadgeGrid badges={PROFILE_BADGES} />
 
       <ActivityHeatmap
         days={activityDays}
