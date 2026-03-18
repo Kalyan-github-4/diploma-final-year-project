@@ -1,20 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
-import { ArrowUpDown, Brain, ChevronsRight, Eye, Gauge, GripVertical, Pause, Play, RotateCcw, Search, SkipBack, SkipForward } from "lucide-react"
 import { trackDSAEvent } from "@/lib/analytics/dsa-events"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { BINARY_SEARCH_COMPLEXITY, BINARY_SEARCH_REFERENCE_CODE, generateBinarySearchSteps } from "@/lib/algorithms/binarySearch"
 import { BUBBLE_SORT_COMPLEXITY, BUBBLE_SORT_REFERENCE_CODE, generateBubbleSortSteps } from "@/lib/algorithms/bubbleSort"
-import { getPseudocodeSteps, initializeBuildMode, validateBuildModeSolution } from "@/lib/build-mode.utils"
-import type { BinarySearchSnapshot, BubbleSortSnapshot, ComplexityMeta, DSAAlgorithm, PlaybackState, DSAStep, BuildModeState } from "@/types/dsa.types"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { getDefaultPseudocode, runSafeBinarySearchPseudocode } from "@/lib/algorithms/safePseudocodeRunner"
+import type { ComplexityMeta, DSAAlgorithm, PlaybackState, DSAStep } from "@/types/dsa.types"
+import { DSAHeaderControls } from "./components/DSAHeaderControls"
+import { DSAVisualizer } from "./components/DSAVisualizer"
+import { DSAReferenceCode } from "./components/DSAReferenceCode"
+import { DSABuildPanel } from "./components/DSABuildPanel"
+import { DSAWatchPanel } from "./components/DSAWatchPanel"
 import "./DSALearningPage.css"
 
 const BINARY_DEFAULT_ARRAY = [2, 5, 8, 12, 16, 23, 38]
 const BINARY_DEFAULT_TARGET = 23
 const BUBBLE_DEFAULT_ARRAY = [64, 34, 25, 12, 22, 11, 90]
 const PREDICT_XP_PER_CORRECT = 15
+const CODE_XP_REWARD = 35
 const PREDICT_CONTINUE_DELAY_MS = 1500
 
 interface BinarySearchInputConfig {
@@ -28,6 +29,7 @@ interface AlgorithmRuntime {
   resultLabel: string
   complexity: ComplexityMeta
   referenceCode: string[]
+  expectedResultIndex?: number
 }
 
 function parseArrayInput(raw: string): number[] | null {
@@ -53,7 +55,6 @@ function isSortedAscending(values: number[]): boolean {
   return true
 }
 
-
 export default function DSALearningPage() {
   const [algorithm, setAlgorithm] = useState<DSAAlgorithm>("binary-search")
   const [inputConfig, setInputConfig] = useState<BinarySearchInputConfig>({
@@ -67,6 +68,12 @@ export default function DSALearningPage() {
   const [predictOverlayResult, setPredictOverlayResult] = useState<"correct" | "wrong" | null>(null)
   const [predictOverlayMessage, setPredictOverlayMessage] = useState<string | null>(null)
   const [predictXp, setPredictXp] = useState(0)
+  const [codeEditorValue, setCodeEditorValue] = useState(getDefaultPseudocode("binary-search"))
+  const [codeRunSteps, setCodeRunSteps] = useState<DSAStep[] | null>(null)
+  const [codeRunMessage, setCodeRunMessage] = useState<string | null>(null)
+  const [codeRunStatus, setCodeRunStatus] = useState<"idle" | "success" | "error">("idle")
+  const [codeRunXp, setCodeRunXp] = useState(0)
+
   const startedSignatureRef = useRef("")
   const completedSignatureRef = useRef("")
   const predictContinueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -77,13 +84,6 @@ export default function DSALearningPage() {
     speedMs: 900,
     mode: "watch",
   })
-
-  const [buildMode, setBuildMode] = useState<BuildModeState>({
-    userOrder: [],
-    result: null,
-    isRunning: false,
-  })
-  const [buildDraggedItem, setBuildDraggedItem] = useState<number | null>(null)
 
   const runtime = useMemo<AlgorithmRuntime>(() => {
     if (algorithm === "binary-search") {
@@ -98,6 +98,7 @@ export default function DSALearningPage() {
         resultLabel: resultIndex >= 0 ? `Found at index ${resultIndex}` : "Not found",
         complexity: BINARY_SEARCH_COMPLEXITY,
         referenceCode: BINARY_SEARCH_REFERENCE_CODE,
+        expectedResultIndex: resultIndex,
       }
     }
 
@@ -114,19 +115,27 @@ export default function DSALearningPage() {
     }
   }, [algorithm, inputConfig.array, inputConfig.target])
 
-  const { steps, resultLabel, complexity, referenceCode, algorithmLabel } = runtime
+  const { resultLabel, complexity, referenceCode, algorithmLabel } = runtime
 
-  const maxStepIndex = Math.max(steps.length - 1, 0)
-  const currentStep = steps[Math.min(playback.currentStep, maxStepIndex)]
-  const stepNumber = Math.min(playback.currentStep + 1, steps.length)
-  const completionPercent = steps.length > 0 ? Math.round((stepNumber / steps.length) * 100) : 0
+  const activeSteps = useMemo(() => {
+    if (playback.mode === "build" && codeRunSteps?.length) {
+      return codeRunSteps
+    }
+    return runtime.steps
+  }, [playback.mode, codeRunSteps, runtime.steps])
+
+  const maxStepIndex = Math.max(activeSteps.length - 1, 0)
+  const currentStep = activeSteps[Math.min(playback.currentStep, maxStepIndex)]
+  const stepNumber = Math.min(playback.currentStep + 1, activeSteps.length)
+  const completionPercent = activeSteps.length > 0 ? Math.round((stepNumber / activeSteps.length) * 100) : 0
   const runSignature = `${algorithm}:${inputConfig.array.join(",")}:${inputConfig.target}`
+
   const questionStepIndices = useMemo(
     () =>
-      steps
+      runtime.steps
         .map((step, index) => (step.question ? index : -1))
-        .filter((index) => index >= 0 && index < steps.length - 1),
-    [steps]
+        .filter((index) => index >= 0 && index < runtime.steps.length - 1),
+    [runtime.steps]
   )
 
   const predictPauseStep = useMemo(() => {
@@ -147,9 +156,9 @@ export default function DSALearningPage() {
 
   const activePredictQuestion =
     playback.mode === "predict" &&
-      predictPauseStep !== null &&
-      playback.currentStep === predictPauseStep
-      ? (steps[predictPauseStep]?.question ?? null)
+    predictPauseStep !== null &&
+    playback.currentStep === predictPauseStep
+      ? (runtime.steps[predictPauseStep]?.question ?? null)
       : null
 
   const isPredictOverlayVisible =
@@ -171,10 +180,10 @@ export default function DSALearningPage() {
       algorithm,
       mode: playback.mode,
       step: 1,
-      totalSteps: steps.length,
+      totalSteps: activeSteps.length,
       details: algorithmLabel,
     })
-  }, [algorithm, algorithmLabel, playback.mode, runSignature, steps.length])
+  }, [algorithm, algorithmLabel, playback.mode, runSignature, activeSteps.length])
 
   useEffect(() => {
     if (playback.currentStep < maxStepIndex || maxStepIndex === 0) {
@@ -193,7 +202,7 @@ export default function DSALearningPage() {
       algorithm,
       mode: playback.mode,
       step: stepNumber,
-      totalSteps: steps.length,
+      totalSteps: activeSteps.length,
       details: algorithmLabel,
     })
   }, [
@@ -204,7 +213,7 @@ export default function DSALearningPage() {
     playback.mode,
     runSignature,
     stepNumber,
-    steps.length,
+    activeSteps.length,
   ])
 
   useEffect(() => {
@@ -216,8 +225,13 @@ export default function DSALearningPage() {
   }, [])
 
   useEffect(() => {
-    if (playback.mode === "watch" && !playback.isPlaying) return
-    if (playback.mode === "predict" && playback.currentStep >= maxStepIndex) return
+    if (!playback.isPlaying) {
+      return
+    }
+
+    if (playback.currentStep >= maxStepIndex) {
+      return
+    }
 
     if (
       playback.mode === "predict" &&
@@ -234,17 +248,19 @@ export default function DSALearningPage() {
           return { ...prev, isPlaying: false }
         }
 
+        const nextStep = Math.min(prev.currentStep + 1, maxStepIndex)
         return {
           ...prev,
-          currentStep: prev.currentStep + 1,
+          currentStep: nextStep,
+          isPlaying: nextStep >= maxStepIndex ? false : prev.isPlaying,
         }
       })
     }, playback.speedMs)
 
     return () => clearTimeout(timer)
   }, [
-    playback.mode,
     playback.isPlaying,
+    playback.mode,
     playback.currentStep,
     playback.speedMs,
     maxStepIndex,
@@ -268,14 +284,15 @@ export default function DSALearningPage() {
       clearTimeout(predictContinueTimerRef.current)
       predictContinueTimerRef.current = null
     }
+
     setPredictAnswered(false)
     setPredictOverlayResult(null)
     setPredictOverlayMessage(null)
     setPredictXp(0)
-    if (playback.mode === "build") {
-      const seed = `${algorithm}:${inputConfig.array.join(",")}:${inputConfig.target}:build`
-      setBuildMode(initializeBuildMode(algorithm, seed))
-    }
+    setCodeRunMessage(null)
+    setCodeRunStatus("idle")
+    setCodeRunXp(0)
+
     setPlayback((prev) => ({
       ...prev,
       currentStep: 0,
@@ -286,7 +303,7 @@ export default function DSALearningPage() {
       algorithm,
       mode: playback.mode,
       step: 1,
-      totalSteps: steps.length,
+      totalSteps: activeSteps.length,
       details: algorithmLabel,
     })
   }
@@ -305,7 +322,7 @@ export default function DSALearningPage() {
         algorithm,
         mode: playback.mode,
         step: stepNumber,
-        totalSteps: steps.length,
+        totalSteps: runtime.steps.length,
         details: `pause-step-${predictPauseStep ?? playback.currentStep}`,
       })
     } else {
@@ -314,7 +331,7 @@ export default function DSALearningPage() {
         algorithm,
         mode: playback.mode,
         step: stepNumber,
-        totalSteps: steps.length,
+        totalSteps: runtime.steps.length,
         details: `pause-step-${predictPauseStep ?? playback.currentStep}`,
       })
     }
@@ -330,80 +347,24 @@ export default function DSALearningPage() {
     }, PREDICT_CONTINUE_DELAY_MS)
   }
 
-  // Build Mode handlers
-  const buildPseudocodeSteps = useMemo(() => {
-    return getPseudocodeSteps(algorithm)
-  }, [algorithm])
-
-  const orderedBuildSteps = useMemo(
-    () => buildMode.userOrder.map((stepIndex) => buildPseudocodeSteps[stepIndex]).filter(Boolean),
-    [buildMode.userOrder, buildPseudocodeSteps]
-  )
-
-  const handleBuildDragStart = (index: number) => {
-    setBuildDraggedItem(index)
-  }
-
-  const handleBuildDragEnd = () => {
-    setBuildDraggedItem(null)
-  }
-
-  const handleBuildDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-  }
-
-  const handleBuildDrop = (targetIndex: number) => {
-    if (buildDraggedItem === null || buildDraggedItem === targetIndex) {
-      setBuildDraggedItem(null)
-      return
-    }
-
-    const newOrder = [...buildMode.userOrder]
-    const [draggedStep] = newOrder.splice(buildDraggedItem, 1)
-    newOrder.splice(targetIndex, 0, draggedStep)
-
-    setBuildMode((prev) => ({
-      ...prev,
-      userOrder: newOrder,
-    }))
-    setBuildDraggedItem(null)
-  }
-
-  const handleBuildRunSolution = () => {
-    setBuildMode((prev) => ({
-      ...prev,
-      isRunning: true,
-    }))
-
-    const result = validateBuildModeSolution(buildMode.userOrder, algorithm, inputConfig.array, inputConfig.target)
-
-    setBuildMode((prev) => ({
-      ...prev,
-      result,
-      isRunning: false,
-    }))
-
-    trackDSAEvent("completed", {
-      algorithm,
-      mode: "build",
-      step: buildMode.userOrder.length,
-      totalSteps: buildPseudocodeSteps.length,
-      details: result.isCorrect ? "build-correct" : `build-failed-at-${result.failedAtStep ?? 0}`,
-    })
-  }
-
   const handleAlgorithmChange = (nextAlgorithm: DSAAlgorithm) => {
     setAlgorithm(nextAlgorithm)
     if (predictContinueTimerRef.current) {
       clearTimeout(predictContinueTimerRef.current)
       predictContinueTimerRef.current = null
     }
+
     setPredictAnswered(false)
     setPredictOverlayResult(null)
     setPredictOverlayMessage(null)
     setPredictXp(0)
-    setBuildMode({ userOrder: [], result: null, isRunning: false })
+    setCodeRunMessage(null)
+    setCodeRunStatus("idle")
+    setCodeRunXp(0)
+    setCodeRunSteps(null)
+    setCodeEditorValue(getDefaultPseudocode(nextAlgorithm))
     setInputError(null)
+
     setPlayback((prev) => ({
       ...prev,
       currentStep: 0,
@@ -427,6 +388,27 @@ export default function DSALearningPage() {
       array: BUBBLE_DEFAULT_ARRAY,
       target: 0,
     })
+  }
+
+  const handleModeChange = (nextMode: PlaybackState["mode"]) => {
+    if (predictContinueTimerRef.current) {
+      clearTimeout(predictContinueTimerRef.current)
+      predictContinueTimerRef.current = null
+    }
+
+    setPredictAnswered(false)
+    setPredictOverlayResult(null)
+    setPredictOverlayMessage(null)
+    setCodeRunMessage(null)
+    setCodeRunStatus("idle")
+    setCodeRunXp(0)
+
+    setPlayback((prev) => ({
+      ...prev,
+      mode: nextMode,
+      currentStep: 0,
+      isPlaying: nextMode === "predict",
+    }))
   }
 
   const applyCustomInput = () => {
@@ -455,15 +437,21 @@ export default function DSALearningPage() {
       array: parsedArray,
       target: parsedTarget,
     })
+
     if (predictContinueTimerRef.current) {
       clearTimeout(predictContinueTimerRef.current)
       predictContinueTimerRef.current = null
     }
+
     setPredictAnswered(false)
     setPredictOverlayResult(null)
     setPredictOverlayMessage(null)
     setPredictXp(0)
-    setBuildMode({ userOrder: [], result: null, isRunning: false })
+    setCodeRunMessage(null)
+    setCodeRunStatus("idle")
+    setCodeRunXp(0)
+    setCodeRunSteps(null)
+
     setPlayback((prev) => ({
       ...prev,
       currentStep: 0,
@@ -471,7 +459,76 @@ export default function DSALearningPage() {
     }))
   }
 
-  if (!steps.length) {
+  const runUserCode = () => {
+    if (playback.mode !== "build") {
+      return
+    }
+
+    if (algorithm !== "binary-search") {
+      setCodeRunStatus("error")
+      setCodeRunMessage("Custom code execution currently supports Binary Search. Switch algorithm to run code.")
+      setCodeRunXp(0)
+      return
+    }
+
+    const run = runSafeBinarySearchPseudocode({
+      source: codeEditorValue,
+      array: inputConfig.array,
+      target: inputConfig.target,
+    })
+
+    setCodeRunSteps(run.steps.length ? run.steps : null)
+    setPlayback((prev) => ({
+      ...prev,
+      currentStep: 0,
+      isPlaying: run.steps.length > 1,
+      mode: "build",
+    }))
+
+    if (!run.ok) {
+      setCodeRunStatus("error")
+      setCodeRunMessage(run.error ?? "Execution failed.")
+      setCodeRunXp(0)
+      trackDSAEvent("completed", {
+        algorithm,
+        mode: "build",
+        step: 1,
+        totalSteps: run.steps.length || 1,
+        details: run.safetyStopped ? "code-run-safety-stopped" : "code-run-invalid-logic",
+      })
+      return
+    }
+
+    const expectedResultIndex = runtime.expectedResultIndex ?? -1
+    const solved = run.resultIndex === expectedResultIndex
+
+    if (solved) {
+      setCodeRunStatus("success")
+      setCodeRunMessage(`Correct logic. Result index: ${run.resultIndex}. +${CODE_XP_REWARD} XP`) 
+      setCodeRunXp(CODE_XP_REWARD)
+      trackDSAEvent("completed", {
+        algorithm,
+        mode: "build",
+        step: run.steps.length,
+        totalSteps: run.steps.length,
+        details: "code-run-success",
+      })
+      return
+    }
+
+    setCodeRunStatus("error")
+    setCodeRunMessage(`Your code returned ${run.resultIndex}, expected ${expectedResultIndex}. No XP earned.`)
+    setCodeRunXp(0)
+    trackDSAEvent("completed", {
+      algorithm,
+      mode: "build",
+      step: run.steps.length,
+      totalSteps: run.steps.length,
+      details: "code-run-wrong-result",
+    })
+  }
+
+  if (!activeSteps.length) {
     return (
       <div className="dsa-page font-sans">
         <div className="dsa-card dsa-card--panel">
@@ -481,432 +538,92 @@ export default function DSALearningPage() {
       </div>
     )
   }
+
   const isBinaryMode = algorithm === "binary-search"
+  const buildQuestion = isBinaryMode
+    ? `Write pseudocode to find target ${inputConfig.target} in [${inputConfig.array.join(", ")}]. Return the correct index or -1.`
+    : `Write pseudocode to sort [${inputConfig.array.join(", ")}] in ascending order.`
+
+  const pointerState = isBinaryMode
+    ? (() => {
+        const snapshot = currentStep.snapshot as { low?: number; mid?: number | null; high?: number }
+        return `low=${snapshot.low ?? "-"}, mid=${snapshot.mid ?? "-"}, high=${snapshot.high ?? "-"}`
+      })()
+    : (() => {
+        const snapshot = currentStep.snapshot as { pass?: number; compareIndices?: number[] }
+        return `pass=${snapshot.pass ?? 0}, compare=${snapshot.compareIndices?.join(",") || "-"}`
+      })()
 
   return (
     <div className="dsa-page font-sans">
-      <div className="dsa-page__topbar">
-        <div>
-          <p className="dsa-page__label font-grotesk">Algorithm</p>
-          <h1 className="dsa-page__title dsa-page__title--icon font-grotesk">
-            {algorithm === "binary-search" ? <Search className="size-5" aria-hidden="true" /> : <ArrowUpDown className="size-5" aria-hidden="true" />}
-            <span>{algorithmLabel}</span>
-          </h1>
-        </div>
-        <div className="dsa-page__controls">
-          <Select value={algorithm} onValueChange={(value) => handleAlgorithmChange(value as DSAAlgorithm)}>
-            <SelectTrigger className="dsa-page__select-trigger">
-              <SelectValue placeholder="Select algorithm" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="binary-search">
-                <Search className="size-4" aria-hidden="true" />
-                Binary Search
-              </SelectItem>
-              <SelectItem value="bubble-sort" className="flex gap-2">
-                <ArrowUpDown className="size-4" aria-hidden="true" />
-                Bubble Sort
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={playback.mode}
-            onValueChange={(value) => {
-              if (predictContinueTimerRef.current) {
-                clearTimeout(predictContinueTimerRef.current)
-                predictContinueTimerRef.current = null
-              }
-
-              setPredictAnswered(false)
-              setPredictOverlayResult(null)
-              setPredictOverlayMessage(null)
-
-              if (value === "build") {
-                const seed = `${algorithm}:${inputConfig.array.join(",")}:${inputConfig.target}:build`
-                setBuildMode(initializeBuildMode(algorithm, seed))
-              } else {
-                setBuildMode({ userOrder: [], result: null, isRunning: false })
-              }
-
-              setPlayback((prev) => ({
-                ...prev,
-                mode: value as PlaybackState["mode"],
-                currentStep: 0,
-                isPlaying: value === "predict",
-              }))
-            }}
-          >
-            <SelectTrigger className="dsa-page__select-trigger">
-              <SelectValue placeholder="Select mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="watch" className="flex gap-2">
-                <Eye className="size-4" aria-hidden="true" />
-                Watch
-              </SelectItem>
-              <SelectItem value="predict" className="flex gap-2">
-                <Brain className="size-4" aria-hidden="true" />
-                Predict
-              </SelectItem>
-              <SelectItem value="build" className="flex gap-2">
-                <GripVertical className="size-4" aria-hidden="true" />
-                Build
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={handleReplay}>
-            <RotateCcw className="size-4" aria-hidden="true" />
-            Reset
-          </Button>
-          <Button onClick={() => setStep(playback.currentStep - 1)}>
-            <SkipBack className="size-4" aria-hidden="true" />
-            Back
-          </Button>
-          <Button
-            onClick={() => setPlayback((prev) => ({ ...prev, isPlaying: !prev.isPlaying }))}
-            disabled={playback.mode === "predict"}
-          >
-            {playback.isPlaying ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
-            {playback.isPlaying ? "Pause" : "Play"}
-          </Button>
-          <Button onClick={() => setStep(playback.currentStep + 1)} disabled={!isQuestionAnswered}>
-            <SkipForward className="size-4" aria-hidden="true" />
-            Next
-          </Button>
-          <Button onClick={() => setStep(maxStepIndex)}>
-            <ChevronsRight className="size-4" aria-hidden="true" />
-            End
-          </Button>
-          <Select
-            value={String(playback.speedMs)}
-            onValueChange={(value) =>
-              setPlayback((prev) => ({
-                ...prev,
-                speedMs: Number(value),
-              }))
-            }
-          >
-            <SelectTrigger className="dsa-page__select-trigger dsa-page__select-trigger--speed">
-              <SelectValue placeholder="Speed" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1200">
-                <Gauge className="size-4" aria-hidden="true" />
-                Slow
-              </SelectItem>
-              <SelectItem value="900">
-                <Gauge className="size-4" aria-hidden="true" />
-                Normal
-              </SelectItem>
-              <SelectItem value="600">
-                <Gauge className="size-4" aria-hidden="true" />
-                Fast
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <DSAHeaderControls
+        algorithm={algorithm}
+        algorithmLabel={algorithmLabel}
+        playback={playback}
+        isQuestionAnswered={isQuestionAnswered}
+        onAlgorithmChange={handleAlgorithmChange}
+        onModeChange={handleModeChange}
+        onReplay={handleReplay}
+        onBack={() => setStep(playback.currentStep - 1)}
+        onTogglePlay={() => setPlayback((prev) => ({ ...prev, isPlaying: !prev.isPlaying }))}
+        onNext={() => setStep(playback.currentStep + 1)}
+        onEnd={() => setStep(maxStepIndex)}
+        onSpeedChange={(value) => setPlayback((prev) => ({ ...prev, speedMs: value }))}
+      />
 
       <div className="dsa-page__content">
         <div className="dsa-page__left">
-          <div
-            className={`dsa-card dsa-card--visualizer ${predictOverlayResult ? `dsa-card--predict-${predictOverlayResult}` : ""
-              }`}
-          >
-            <div className={`dsa-array-canvas ${isBinaryMode ? "dsa-array-canvas--binary" : ""}`}>
-              <div className={`dsa-array ${isBinaryMode ? "dsa-array--binary" : ""}`}>
-                {currentStep.snapshot.array.map((value, index) => {
-                  const binarySnapshot = currentStep.snapshot as BinarySearchSnapshot
-                  const bubbleSnapshot = currentStep.snapshot as BubbleSortSnapshot
+          <DSAVisualizer
+            currentStep={currentStep}
+            isBinaryMode={isBinaryMode}
+            predictOverlayResult={predictOverlayResult}
+            isPredictOverlayVisible={isPredictOverlayVisible}
+            activePredictQuestion={activePredictQuestion}
+            predictAnswered={predictAnswered}
+            onSubmitPredictAnswer={submitPredictAnswer}
+            predictOverlayMessage={predictOverlayMessage}
+          />
 
-                  const isFound = isBinaryMode && binarySnapshot.foundIndex === index
-                  const isMid = isBinaryMode && binarySnapshot.mid === index
-                  const isLow = isBinaryMode && binarySnapshot.low === index
-                  const isHigh = isBinaryMode && binarySnapshot.high === index
-                  const inWindow =
-                    isBinaryMode && index >= binarySnapshot.low && index <= binarySnapshot.high
-
-                  const isCompare = !isBinaryMode && bubbleSnapshot.compareIndices.includes(index)
-                  const isSwap = !isBinaryMode && bubbleSnapshot.swapIndices.includes(index)
-                  const isSorted = !isBinaryMode && index >= bubbleSnapshot.sortedFrom
-
-                  return (
-                    <motion.div
-                      key={`${index}-${value}`}
-                      layout
-                      initial={{ opacity: 0.8, y: 6 }}
-                      animate={{ opacity: 1, y: 0, scale: isSwap ? 1.04 : 1 }}
-                      transition={{ duration: 0.2 }}
-                      className={`dsa-array__item ${isBinaryMode ? "dsa-array__item--binary" : ""}`}
-                    >
-                      {isBinaryMode && <span className="dsa-array__index">index {index}</span>}
-
-                      <div
-                        className={[
-                          "dsa-array__cell",
-                          inWindow ? "dsa-array__cell--window" : "",
-                          isBinaryMode && !inWindow ? "dsa-array__cell--excluded" : "",
-                          isLow ? "dsa-array__cell--low" : "",
-                          isHigh ? "dsa-array__cell--high" : "",
-                          isMid ? "dsa-array__cell--mid" : "",
-                          isFound ? "dsa-array__cell--found" : "",
-                          isCompare ? "dsa-array__cell--compare" : "",
-                          isSwap ? "dsa-array__cell--swap" : "",
-                          isSorted ? "dsa-array__cell--sorted" : "",
-                        ].join(" ")}
-                      >
-                        <span className="dsa-array__value">{value}</span>
-                        {!isBinaryMode && (
-                          <div className="dsa-array__meta">
-                            {isCompare && <em>cmp</em>}
-                            {isSwap && <em>swap</em>}
-                            {isSorted && <em>sorted</em>}
-                          </div>
-                        )}
-                      </div>
-
-                      {isBinaryMode && (
-                        <div className="dsa-array__pointers">
-                          {isLow && (
-                            <span className="dsa-array__pointer-pill">
-                              <span aria-hidden="true">↑</span>
-                              low
-                            </span>
-                          )}
-                          {isMid && (
-                            <span className="dsa-array__pointer-pill dsa-array__pointer-pill--mid">
-                              <span aria-hidden="true">↑</span>
-                              mid
-                            </span>
-                          )}
-                          {isHigh && (
-                            <span className="dsa-array__pointer-pill">
-                              <span aria-hidden="true">↑</span>
-                              high
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </motion.div>
-                  )
-                })}
-              </div>
-
-              {isBinaryMode && (
-                <div className="dsa-array__legend" aria-label="Binary Search state legend">
-                  <span className="dsa-array__legend-pill dsa-array__legend-pill--pivot">Current Pivot</span>
-                  <span className="dsa-array__legend-pill">Unvisited</span>
-                  <span className="dsa-array__legend-pill dsa-array__legend-pill--excluded">Excluded</span>
-                </div>
-              )}
-
-              <AnimatePresence>
-                {isPredictOverlayVisible && activePredictQuestion && (
-                  <motion.div
-                    className="dsa-predict-overlay"
-                    initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    <p className="dsa-predict-overlay__eyebrow">Predict Mode</p>
-                    <h4 className="dsa-predict-overlay__title font-grotesk">What happens next?</h4>
-                    <p className="dsa-predict-overlay__question">{activePredictQuestion.text}</p>
-
-                    <div className="dsa-predict-overlay__options">
-                      {activePredictQuestion.options.map((option, index) => (
-                        <Button
-                          key={`${option}-${index}`}
-                          className="dsa-predict-overlay__option"
-                          disabled={predictAnswered}
-                          onClick={() => submitPredictAnswer(index)}
-                        >
-                          {option}
-                        </Button>
-                      ))}
-                    </div>
-
-                    {predictOverlayMessage && (
-                      <p className="dsa-predict-overlay__feedback">{predictOverlayMessage}</p>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-
-          <div className="dsa-card dsa-card--code">
-            <div className="dsa-code-shell__header">
-              <div className="dsa-code-shell__dots" aria-hidden>
-                <span className="dsa-code-shell__dot dsa-code-shell__dot--red" />
-                <span className="dsa-code-shell__dot dsa-code-shell__dot--yellow" />
-                <span className="dsa-code-shell__dot dsa-code-shell__dot--green" />
-              </div>
-              <h3 className="dsa-code-shell__title">Reference Code</h3>
-            </div>
-
-            <div className="dsa-code-shell__body">
-              <div className="dsa-code">
-                {referenceCode.map((line, index) => {
-                  const lineNumber = index + 1
-                  const active = lineNumber === currentStep.codeLine
-                  return (
-                    <div key={`${line}-${index}`} className={`dsa-code__line ${active ? "dsa-code__line--active" : ""}`}>
-                      <span className="dsa-code__line-number">{lineNumber}</span>
-                      <span className="dsa-code__line-text">{line}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+          <DSAReferenceCode
+            referenceCode={referenceCode}
+            activeCodeLine={currentStep.codeLine}
+            mode={playback.mode}
+            editorCode={codeEditorValue}
+            onEditorCodeChange={setCodeEditorValue}
+            onRunCode={runUserCode}
+            runDisabled={playback.mode !== "build" || playback.isPlaying}
+          />
         </div>
 
         <aside className="dsa-card dsa-card--panel">
           {playback.mode === "build" ? (
-            <>
-              <h3 className="font-grotesk">Build Mode</h3>
-              <p className="dsa-panel__description">Arrange the steps in correct order to match the algorithm logic.</p>
-
-              <div className="dsa-panel__section">
-                <h4 className="font-grotesk">Pseudocode Steps</h4>
-                <div className="dsa-build-steps">
-                  {orderedBuildSteps.map((step, orderPosition) => {
-                    return (
-                      <motion.div
-                        key={step.id}
-                        draggable
-                        onDragStart={() => handleBuildDragStart(orderPosition)}
-                        onDragEnd={handleBuildDragEnd}
-                        onDragOver={handleBuildDragOver}
-                        onDrop={() => handleBuildDrop(orderPosition)}
-                        className={`dsa-build-step ${buildDraggedItem === orderPosition ? "dsa-build-step--dragging" : ""} ${
-                          buildMode.result?.failedAtStep === orderPosition ? "dsa-build-step--error" : ""
-                        }`}
-                        layout
-                        animate={{ opacity: 1, y: 0 }}
-                        initial={{ opacity: 0, y: 8 }}
-                        exit={{ opacity: 0, y: -8 }}
-                      >
-                        <GripVertical className="dsa-build-step__handle" aria-hidden="true" />
-                        <span className="dsa-build-step__number">{orderPosition + 1}</span>
-                        <span className="dsa-build-step__text">{step.text}</span>
-                      </motion.div>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <Button
-                className="dsa-apply-btn"
-                onClick={handleBuildRunSolution}
-                disabled={buildMode.isRunning || buildMode.userOrder.length === 0}
-              >
-                Run My Solution
-              </Button>
-
-              {buildMode.result && (
-                <motion.div
-                  className={`dsa-build-result dsa-build-result--${buildMode.result.isCorrect ? "correct" : "wrong"}`}
-                  initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <h4 className="font-grotesk dsa-build-result__title">
-                    {buildMode.result.isCorrect ? "✅ Correct" : "❌ Algorithm Failed"}
-                  </h4>
-                  {!buildMode.result.isCorrect && (
-                    <>
-                      <p className="dsa-build-result__reason">{buildMode.result.failureReason}</p>
-                      {buildMode.result.failedAtStep !== undefined && (
-                        <p className="dsa-build-result__step">
-                          Failed at step: {buildMode.result.failedAtStep + 1}
-                        </p>
-                      )}
-                    </>
-                  )}
-                  {buildMode.result.isCorrect && (
-                    <p className="dsa-build-result__steps">
-                      Executed {buildMode.result.executedSteps} steps successfully
-                    </p>
-                  )}
-                </motion.div>
-              )}
-            </>
+            <DSABuildPanel
+              algorithmLabel={algorithmLabel}
+              question={buildQuestion}
+              progressPercent={completionPercent}
+              executionState={`Step ${stepNumber}/${activeSteps.length}`}
+              currentPointerState={pointerState}
+              runMessage={codeRunMessage}
+              runResult={codeRunStatus}
+              xpEarned={codeRunXp}
+            />
           ) : (
-            <>
-              <h3 className="font-grotesk">Current Step</h3>
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={currentStep.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  {currentStep.description}
-                </motion.p>
-              </AnimatePresence>
-
-              <div className="dsa-panel__section">
-                <h4 className="font-grotesk">Progress</h4>
-                <p>
-                  Step {stepNumber} / {steps.length}
-                </p>
-                <div className="dsa-progress-track">
-                  <motion.div
-                    className="dsa-progress-fill"
-                    animate={{ width: `${completionPercent}%` }}
-                    transition={{ duration: 0.2 }}
-                  />
-                </div>
-              </div>
-
-              <div className="dsa-panel__section">
-                <h4 className="font-grotesk">Result</h4>
-                <p>{resultLabel}</p>
-                <p>Predict XP: +{predictXp}</p>
-              </div>
-
-              <div className="dsa-panel__section">
-                <h4 className="font-grotesk">Custom Input</h4>
-                <label className="dsa-input-label font-grotesk">
-                  Array{algorithm === "binary-search" ? " (ascending)" : ""}
-                </label>
-                <Input
-                  value={arrayInput}
-                  onChange={(e) => setArrayInput(e.target.value)}
-                  placeholder={algorithm === "binary-search" ? "2, 5, 8, 12, 16" : "64, 34, 25, 12"}
-                />
-
-                {algorithm === "binary-search" && (
-                  <>
-                    <label className="dsa-input-label font-grotesk">Target</label>
-                    <Input
-                      value={targetInput}
-                      onChange={(e) => setTargetInput(e.target.value)}
-                      placeholder="23"
-                    />
-                  </>
-                )}
-
-                {inputError && <p className="dsa-input-error">{inputError}</p>}
-
-                <Button className="dsa-apply-btn" onClick={applyCustomInput}>
-                  Apply & Re-run
-                </Button>
-              </div>
-
-              <div className="dsa-panel__section">
-                <h4 className="font-grotesk">Complexity</h4>
-                <p>Best: {complexity.timeBest}</p>
-                <p>Average: {complexity.timeAverage}</p>
-                <p>Worst: {complexity.timeWorst}</p>
-                <p>Space: {complexity.space}</p>
-                {complexity.note && <p>{complexity.note}</p>}
-              </div>
-            </>
+            <DSAWatchPanel
+              currentStep={currentStep}
+              stepNumber={stepNumber}
+              totalSteps={activeSteps.length}
+              completionPercent={completionPercent}
+              resultLabel={resultLabel}
+              predictXp={predictXp}
+              algorithm={algorithm}
+              arrayInput={arrayInput}
+              targetInput={targetInput}
+              inputError={inputError}
+              complexity={complexity}
+              onArrayInputChange={setArrayInput}
+              onTargetInputChange={setTargetInput}
+              onApplyCustomInput={applyCustomInput}
+            />
           )}
         </aside>
       </div>

@@ -406,6 +406,13 @@
   margin-left: 8px;
 }
 
+.dsa-code-shell__run-btn {
+  margin-left: auto;
+  height: 30px;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
 .dsa-code-shell__body {
   flex: 1;
   min-height: 0;
@@ -413,11 +420,21 @@
   padding: 14px 12px;
 }
 
+.dsa-code-shell__body--editor {
+  padding: 0;
+  min-height: 220px;
+}
+
 .dsa-code {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-height: 100%;
+}
+
+.dsa-code-shell__body--editor .cm-editor {
+  height: 100%;
+  min-height: 220px;
 }
 
 .dsa-code__line {
@@ -563,6 +580,42 @@
   margin: 4px 0 8px 0;
   font-size: 12px;
   color: var(--text-secondary);
+}
+
+.dsa-runtime-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.dsa-runtime-progress__ring {
+  width: 82px;
+  height: 82px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dsa-runtime-progress__inner {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.dsa-runtime-progress__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .dsa-build-steps {
