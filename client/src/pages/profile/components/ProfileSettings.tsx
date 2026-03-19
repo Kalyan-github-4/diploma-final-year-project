@@ -34,67 +34,87 @@ export default function ProfileSettings({
   const [newModuleAlerts, setNewModuleAlerts] = useState(false)
 
   return (
-    <section className="profile-section">
-      <div className="profile-section__header">
-        <h2>Settings</h2>
+    <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
+      <div className="mb-3.5 flex items-center justify-between">
+        <h2 className="font-gortesk text-[18px] font-bold text-foreground">
+          Settings
+        </h2>
       </div>
 
-      <div className="profile-settings-grid">
-        <article className="profile-settings-card">
-          <h3 className="profile-subheading">Account Settings</h3>
+      <div className="grid grid-cols-2 gap-3 max-[720px]:grid-cols-1">
+        <article className="flex flex-col gap-2.5 rounded-[10px] border border-border p-3">
+          <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
+            Account Settings
+          </h3>
 
-          <label>
+          <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
             <span>Name</span>
             <Input value={name} onChange={(e) => onNameChange(e.target.value)} />
           </label>
 
-          <label>
+          <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
             <span>Email</span>
             <Input value={email} onChange={(e) => onEmailChange(e.target.value)} />
           </label>
 
-          <div className="profile-settings-inline-actions">
-            <button className="profile-btn profile-btn--outline">Send verification email</button>
-            <button className="profile-btn profile-btn--outline" onClick={() => setChangePasswordOpen(true)}>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
+            >
+              Send verification email
+            </button>
+            <button
+              type="button"
+              className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
+              onClick={() => setChangePasswordOpen(true)}
+            >
               Change Password
             </button>
           </div>
 
-          <div className="profile-avatar-presets">
+          <div className="flex flex-col gap-2">
             <span>Avatar presets</span>
-            <div className="profile-avatar-presets__grid">
+            <div className="flex gap-2">
               {AVATAR_PRESETS.map((preset) => (
                 <button
                   key={preset}
-                  className={`profile-avatar-preset ${avatarUrl === preset ? "profile-avatar-preset--active" : ""}`}
+                  type="button"
+                  className={`h-11 w-11 cursor-pointer overflow-hidden rounded-[9999px] border ${avatarUrl === preset ? "border-(--accent,#6366f1)" : "border-border"}`}
                   onClick={() => onAvatarPreset(preset)}
                 >
-                  <img src={preset} alt="avatar preset" />
+                  <img src={preset} alt="avatar preset" className="h-full w-full" />
                 </button>
               ))}
             </div>
           </div>
         </article>
 
-        <article className="profile-settings-card">
-          <h3 className="profile-subheading">Preferences</h3>
+        <article className="flex flex-col gap-2.5 rounded-[10px] border border-border p-3">
+          <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
+            Preferences
+          </h3>
 
-          <div className="profile-settings-row">
+          <div className="flex items-center justify-between">
             <span>Theme</span>
             <ThemeToggle />
           </div>
 
-          <label>
+          <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
             <span>Editor font</span>
-            <select value={editorFont} onChange={(e) => setEditorFont(e.target.value)}>
+            <select
+              value={editorFont}
+              onChange={(e) => setEditorFont(e.target.value)}
+              className="h-8.5 w-full rounded-lg border border-border bg-transparent px-2.5 text-foreground"
+            >
               <option>JetBrains Mono</option>
               <option>Fira Code</option>
               <option>Cascadia Code</option>
             </select>
           </label>
 
-          <div className="profile-settings-toggles">
-            <label>
+          <div className="flex flex-col gap-1.5">
+            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
               <input
                 type="checkbox"
                 checked={missionReminders}
@@ -102,7 +122,7 @@ export default function ProfileSettings({
               />
               Mission reminders
             </label>
-            <label>
+            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
               <input
                 type="checkbox"
                 checked={streakAlerts}
@@ -110,7 +130,7 @@ export default function ProfileSettings({
               />
               Streak alerts
             </label>
-            <label>
+            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
               <input
                 type="checkbox"
                 checked={newModuleAlerts}

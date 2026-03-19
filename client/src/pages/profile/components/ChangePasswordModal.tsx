@@ -37,8 +37,8 @@ export default function ChangePasswordModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="profile-modal-fields">
-          <label>
+        <div className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
+          <label className="flex flex-col gap-1.5">
             <span>Current password</span>
             <Input
               type="password"
@@ -46,7 +46,7 @@ export default function ChangePasswordModal({
               onChange={(e) => setCurrentPassword(e.target.value)}
             />
           </label>
-          <label>
+          <label className="flex flex-col gap-1.5">
             <span>New password</span>
             <Input
               type="password"
@@ -54,7 +54,7 @@ export default function ChangePasswordModal({
               onChange={(e) => setNextPassword(e.target.value)}
             />
           </label>
-          <label>
+          <label className="flex flex-col gap-1.5">
             <span>Confirm password</span>
             <Input
               type="password"

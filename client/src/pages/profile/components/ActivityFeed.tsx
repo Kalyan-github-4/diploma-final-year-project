@@ -63,33 +63,42 @@ export default function ActivityFeed({ items }: ActivityFeedProps) {
   }, [visibleItems])
 
   return (
-    <section className="profile-section">
-      <div className="profile-section__header">
-        <h2>Recent Activity Feed</h2>
+    <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
+      <div className="mb-3.5 flex items-center justify-between">
+        <h2 className="font-['Space_Grotesk',sans-serif] text-[18px] font-bold text-foreground">
+          Recent Activity Feed
+        </h2>
       </div>
 
-      <div className="profile-activity-groups">
-        {Object.entries(grouped).map(([group, list]) => (
-          <div key={group} className="profile-activity-group">
-            <h3 className="profile-subheading">{group}</h3>
-            <ul className="profile-activity-list">
+      <div>
+        {Object.entries(grouped).map(([group, list], index) => (
+          <div key={group} className={index > 0 ? "mt-3.5" : undefined}>
+            <h3 className="mb-2.5 font-['Space_Grotesk',sans-serif] text-[14px] font-semibold text-foreground">
+              {group}
+            </h3>
+            <ul className="m-0 flex list-none flex-col gap-2 p-0">
               {list.map((item) => {
                 const Icon = TYPE_ICON[item.type]
                 return (
-                  <li key={item.id} className="profile-activity-item">
-                    <span className="profile-activity-item__icon">
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-2.5 rounded-[10px] border border-border p-2.5"
+                  >
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[rgba(99,102,241,0.12)] text-(--accent,#6366f1)">
                       <Icon size={14} />
                     </span>
-                    <div className="profile-activity-item__body">
-                      <p className="profile-activity-item__description">{item.description}</p>
-                      <p className="profile-activity-item__time">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px]">{item.description}</p>
+                      <p className="text-[11px] text-(--text-tertiary)">
                         {new Date(item.timestamp).toLocaleTimeString([], {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}
                       </p>
                     </div>
-                    <span className="profile-activity-item__xp">+{item.xp} XP</span>
+                    <span className="font-['Space_Grotesk',sans-serif] text-[12px] font-bold text-(--accent,#6366f1)">
+                      +{item.xp} XP
+                    </span>
                   </li>
                 )
               })}
@@ -99,7 +108,11 @@ export default function ActivityFeed({ items }: ActivityFeedProps) {
       </div>
 
       {limit < items.length && (
-        <button className="profile-btn profile-btn--outline" onClick={() => setLimit((v) => v + 10)}>
+        <button
+          type="button"
+          className="mt-3 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
+          onClick={() => setLimit((v) => v + 10)}
+        >
           Load more
         </button>
       )}

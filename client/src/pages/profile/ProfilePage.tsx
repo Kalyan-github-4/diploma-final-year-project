@@ -1,13 +1,12 @@
 import { useMemo, useState } from "react"
-import ProfileHeader from "@/components/profile/ProfileHeader"
-import QuickStats, { type QuickStat } from "@/components/profile/QuickStats"
-import SkillsSnapshot from "@/components/profile/SkillsSnapshot"
-import BadgeGrid from "@/components/profile/BadgeGrid"
-import type { Badge } from "@/components/profile/BadgeCard"
-import ActivityHeatmap from "@/components/profile/ActivityHeatmap"
-import ActivityFeed, { type ActivityItem } from "@/components/profile/ActivityFeed"
-import ProfileSettings from "@/components/profile/ProfileSettings"
-import "./Profile.css"
+import ProfileHeader from "@/pages/profile/components/ProfileHeader"
+import QuickStats, { type QuickStat } from "@/pages/profile/components/QuickStats"
+import SkillsSnapshot from "@/pages/profile/components/SkillsSnapshot"
+import BadgeGrid from "@/pages/profile/components/BadgeGrid"
+import type { Badge } from "@/pages/profile/components/BadgeCard"
+import ActivityHeatmap from "@/pages/profile/components/ActivityHeatmap"
+import ActivityFeed, { type ActivityItem } from "@/pages/profile/components/ActivityFeed"
+import ProfileSettings from "@/pages/profile/components/ProfileSettings"
 
 interface ProfileState {
   avatarUrl: string
@@ -111,7 +110,7 @@ export default function ProfilePage() {
   const activeDays = activityDays.filter((d) => d.xp > 0).length
 
   return (
-    <div className="profile-page font-sans">
+    <div className="flex flex-col gap-5 pb-10 font-sans">
       <ProfileHeader
         profile={profile}
         isEditing={isEditing}

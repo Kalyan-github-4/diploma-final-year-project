@@ -33,9 +33,9 @@ export default function EditProfileModal({
   if (!open) return null
 
   return (
-    <div className="profile-edit-inline">
-      <div className="profile-edit-inline__fields">
-        <label>
+    <div className="mt-3.5 rounded-[10px] border border-border bg-[rgba(255,255,255,0.02)] p-3">
+      <div className="grid grid-cols-2 gap-2.5 max-[720px]:grid-cols-1">
+        <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
           <span>Name</span>
           <Input
             value={draft.displayName}
@@ -43,12 +43,12 @@ export default function EditProfileModal({
           />
         </label>
 
-        <label>
+        <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
           <span>Title</span>
           <Input value={draft.title} onChange={(e) => setDraft((p) => ({ ...p, title: e.target.value }))} />
         </label>
 
-        <label>
+        <label className="col-span-2 flex flex-col gap-1.5 text-[12px] text-(--text-secondary) max-[720px]:col-span-1">
           <span>Bio</span>
           <Textarea
             value={draft.bio}
@@ -58,11 +58,19 @@ export default function EditProfileModal({
         </label>
       </div>
 
-      <div className="profile-edit-inline__actions">
-        <button className="profile-btn profile-btn--outline" onClick={onCancel}>
+      <div className="mt-2.5 flex justify-end gap-2">
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
+          onClick={onCancel}
+        >
           Cancel
         </button>
-        <button className="profile-btn" onClick={() => onSave(draft)}>
+        <button
+          type="button"
+          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-(--accent,#6366F1) bg-(--accent,#6366F1) px-3 py-2 text-[13px] font-semibold text-white"
+          onClick={() => onSave(draft)}
+        >
           Save changes
         </button>
       </div>
