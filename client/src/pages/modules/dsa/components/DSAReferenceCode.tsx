@@ -122,16 +122,16 @@ export function DSAReferenceCode({
   }, [editorCode])
 
   return (
-    <div className="dsa-card dsa-card--code">
-      <div className="dsa-code-shell__header">
-        <div className="dsa-code-shell__dots" aria-hidden>
-          <span className="dsa-code-shell__dot dsa-code-shell__dot--red" />
-          <span className="dsa-code-shell__dot dsa-code-shell__dot--yellow" />
-          <span className="dsa-code-shell__dot dsa-code-shell__dot--green" />
+    <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-(--card-border) bg-(--terminal-bg,#0A0A0A) p-0">
+      <div className="flex items-center gap-2 border-b border-border bg-white/2 px-4 py-2.5">
+        <div className="flex gap-1.5" aria-hidden>
+          <span className="size-2.5 rounded-full bg-(--danger)" />
+          <span className="size-2.5 rounded-full bg-(--warning)" />
+          <span className="size-2.5 rounded-full bg-(--success)" />
         </div>
-        <h3 className="dsa-code-shell__title">{isBuildMode ? "Pseudo Code Runner" : "Reference Code"}</h3>
+        <h3 className="ml-2 m-0 font-mono text-xs font-medium text-(--text-tertiary)">{isBuildMode ? "Pseudo Code Runner" : "Reference Code"}</h3>
         {isBuildMode && (
-          <Button className="dsa-code-shell__run-btn" onClick={onRunCode} disabled={runDisabled}>
+          <Button className="ml-auto h-[30px] rounded-lg px-2.5" onClick={onRunCode} disabled={runDisabled}>
             Run Code
           </Button>
         )}
@@ -139,17 +139,20 @@ export function DSAReferenceCode({
 
       <div
         ref={isBuildMode ? hostRef : undefined}
-        className={`dsa-code-shell__body ${isBuildMode ? "dsa-code-shell__body--editor" : ""}`}
+        className={`flex-1 min-h-0 overflow-auto px-3 py-[14px] ${isBuildMode ? "min-h-55 p-0" : ""}`}
       >
         {!isBuildMode && (
-          <div className="dsa-code">
+          <div className="flex min-h-full flex-col gap-1">
             {referenceCode.map((line, index) => {
               const lineNumber = index + 1
               const active = lineNumber === activeCodeLine
               return (
-                <div key={`${line}-${index}`} className={`dsa-code__line ${active ? "dsa-code__line--active" : ""}`}>
-                  <span className="dsa-code__line-number">{lineNumber}</span>
-                  <span className="dsa-code__line-text">{line}</span>
+                <div
+                  key={`${line}-${index}`}
+                  className={`grid grid-cols-[30px_1fr] gap-2.5 rounded-lg px-2 py-[5px] font-mono text-xs leading-[1.55] text-foreground ${active ? "bg-[color-mix(in_oklab,var(--accent)_16%,var(--terminal-bg,#0A0A0A))] shadow-[inset_2px_0_0_0_var(--accent)]" : ""}`}
+                >
+                  <span className="select-none text-right text-(--text-secondary)">{lineNumber}</span>
+                  <span>{line}</span>
                 </div>
               )
             })}

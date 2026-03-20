@@ -33,92 +33,111 @@ export function DSAHeaderControls({
   onSpeedChange,
 }: DSAHeaderControlsProps) {
   return (
-    <div className="dsa-page__topbar">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-(--card-border) bg-card p-3">
       <div>
-        <p className="dsa-page__label font-grotesk">Algorithm</p>
-        <h1 className="dsa-page__title dsa-page__title--icon font-grotesk">
+        <p className="m-0 text-xs text-(--text-secondary) font-grotesk">Algorithm</p>
+        <h1 className="m-0 inline-flex items-center gap-2 text-[20px] font-bold font-grotesk">
           {algorithm === "binary-search" ? <Search className="size-5" aria-hidden="true" /> : <ArrowUpDown className="size-5" aria-hidden="true" />}
           <span>{algorithmLabel}</span>
         </h1>
       </div>
 
-      <div className="dsa-page__controls">
-        <Select value={algorithm} onValueChange={(value) => onAlgorithmChange(value as DSAAlgorithm)}>
-          <SelectTrigger className="dsa-page__select-trigger">
-            <SelectValue placeholder="Select algorithm" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="binary-search">
-              <Search className="size-4" aria-hidden="true" />
-              Binary Search
-            </SelectItem>
-            <SelectItem value="bubble-sort" className="flex gap-2">
-              <ArrowUpDown className="size-4" aria-hidden="true" />
-              Bubble Sort
-            </SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={algorithm} onValueChange={(value) => onAlgorithmChange(value as DSAAlgorithm)}>
+            <SelectTrigger className="h-9 min-w-36 rounded-[10px] border-border bg-background text-foreground shadow-none hover:border-(--border-hover) hover:bg-(--bg-surface)">
+              <SelectValue placeholder="Select algorithm" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="binary-search">
+                <span className="inline-flex items-center gap-2">
+                  <Search className="size-4" aria-hidden="true" />
+                  Binary Search
+                </span>
+              </SelectItem>
+              <SelectItem value="bubble-sort">
+                <span className="inline-flex items-center gap-2">
+                  <ArrowUpDown className="size-4" aria-hidden="true" />
+                  Bubble Sort
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={playback.mode} onValueChange={(value) => onModeChange(value as PlaybackState["mode"])}>
-          <SelectTrigger className="dsa-page__select-trigger">
-            <SelectValue placeholder="Select mode" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="watch" className="flex gap-2">
-              <Eye className="size-4" aria-hidden="true" />
-              Watch
-            </SelectItem>
-            <SelectItem value="predict" className="flex gap-2">
-              <Brain className="size-4" aria-hidden="true" />
-              Predict
-            </SelectItem>
-            <SelectItem value="build" className="flex gap-2">
-              <GripVertical className="size-4" aria-hidden="true" />
-              Build
-            </SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={playback.mode} onValueChange={(value) => onModeChange(value as PlaybackState["mode"])}>
+            <SelectTrigger className="h-9 min-w-36 rounded-[10px] border-border bg-background text-foreground shadow-none hover:border-(--border-hover) hover:bg-(--bg-surface)">
+              <SelectValue placeholder="Select mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="watch">
+                <span className="inline-flex items-center gap-2">
+                  <Eye className="size-4" aria-hidden="true" />
+                  Watch
+                </span>
+              </SelectItem>
+              <SelectItem value="predict">
+                <span className="inline-flex items-center gap-2">
+                  <Brain className="size-4" aria-hidden="true" />
+                  Predict
+                </span>
+              </SelectItem>
+              <SelectItem value="build">
+                <span className="inline-flex items-center gap-2">
+                  <GripVertical className="size-4" aria-hidden="true" />
+                  Build
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Button onClick={onReplay}>
+          <Select value={String(playback.speedMs)} onValueChange={(value) => onSpeedChange(Number(value))}>
+            <SelectTrigger className="h-9 min-w-36 rounded-[10px] border-border bg-background text-foreground shadow-none hover:border-(--border-hover) hover:bg-(--bg-surface)">
+              <SelectValue placeholder="Speed" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1200">
+                <span className="inline-flex items-center gap-2">
+                  <Gauge className="size-4" aria-hidden="true" />
+                  Slow
+                </span>
+              </SelectItem>
+              <SelectItem value="900">
+                <span className="inline-flex items-center gap-2">
+                  <Gauge className="size-4" aria-hidden="true" />
+                  Normal
+                </span>
+              </SelectItem>
+              <SelectItem value="600">
+                <span className="inline-flex items-center gap-2">
+                  <Gauge className="size-4" aria-hidden="true" />
+                  Fast
+                </span>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button className="h-[34px] rounded-lg" onClick={onReplay}>
           <RotateCcw className="size-4" aria-hidden="true" />
           Reset
         </Button>
-        <Button onClick={onBack}>
+        <Button className="h-[34px] rounded-lg" onClick={onBack}>
           <SkipBack className="size-4" aria-hidden="true" />
           Back
         </Button>
-        <Button onClick={onTogglePlay} disabled={playback.mode === "predict"}>
+        <Button className="h-[34px] rounded-lg" onClick={onTogglePlay} disabled={playback.mode === "predict"}>
           {playback.isPlaying ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
           {playback.isPlaying ? "Pause" : "Play"}
         </Button>
-        <Button onClick={onNext} disabled={!isQuestionAnswered}>
+        <Button className="h-[34px] rounded-lg" onClick={onNext} disabled={!isQuestionAnswered}>
           <SkipForward className="size-4" aria-hidden="true" />
           Next
         </Button>
-        <Button onClick={onEnd}>
+        <Button className="h-[34px] rounded-lg" onClick={onEnd}>
           <ChevronsRight className="size-4" aria-hidden="true" />
           End
         </Button>
 
-        <Select value={String(playback.speedMs)} onValueChange={(value) => onSpeedChange(Number(value))}>
-          <SelectTrigger className="dsa-page__select-trigger dsa-page__select-trigger--speed">
-            <SelectValue placeholder="Speed" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1200">
-              <Gauge className="size-4" aria-hidden="true" />
-              Slow
-            </SelectItem>
-            <SelectItem value="900">
-              <Gauge className="size-4" aria-hidden="true" />
-              Normal
-            </SelectItem>
-            <SelectItem value="600">
-              <Gauge className="size-4" aria-hidden="true" />
-              Fast
-            </SelectItem>
-          </SelectContent>
-        </Select>
       </div>
     </div>
   )

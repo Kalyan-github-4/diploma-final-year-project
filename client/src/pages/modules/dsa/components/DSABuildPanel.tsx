@@ -28,21 +28,21 @@ export function DSABuildPanel({
   return (
     <>
       <h3 className="font-grotesk">Code Mode</h3>
-      <p className="dsa-panel__description">Write pseudocode, run safely, and watch the visualizer replay your execution.</p>
+      <p className="my-0 mt-1 mb-2 text-xs text-(--text-secondary)">Write pseudocode, run safely, and watch the visualizer replay your execution.</p>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Question</h4>
         <p>{algorithmLabel}</p>
         <p>{question}</p>
       </div>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Realtime Progress</h4>
-        <div className="dsa-runtime-progress">
-          <div className="dsa-runtime-progress__ring" style={ringStyle}>
-            <div className="dsa-runtime-progress__inner">{Math.round(progressPercent)}%</div>
+        <div className="mt-1.5 flex items-center gap-3">
+          <div className="flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full" style={ringStyle}>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card text-[13px] font-bold text-[var(--text-primary)]">{Math.round(progressPercent)}%</div>
           </div>
-          <div className="dsa-runtime-progress__meta">
+          <div className="flex flex-col gap-1">
             <p>{executionState}</p>
             <p>{currentPointerState}</p>
           </div>
@@ -51,16 +51,16 @@ export function DSABuildPanel({
 
       {runMessage && (
         <motion.div
-          className={`dsa-build-result dsa-build-result--${runResult === "success" ? "correct" : "wrong"}`}
+          className={`mt-3 rounded-lg border-2 p-3 ${runResult === "success" ? "border-[hsl(127_71%_55%)] bg-[color-mix(in_oklab,hsl(127_71%_55%)_8%,var(--bg-primary))]" : "border-[hsl(0_75%_55%)] bg-[color-mix(in_oklab,hsl(0_75%_55%)_8%,var(--bg-primary))]"}`}
           initial={{ opacity: 0, y: 8, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.2 }}
         >
-          <h4 className="font-grotesk dsa-build-result__title">
+          <h4 className={`m-0 mb-2 text-[13px] font-semibold font-grotesk ${runResult === "success" ? "text-[hsl(127_71%_55%)]" : "text-[hsl(0_75%_55%)]"}`}>
             {runResult === "success" ? "✅ Execution Passed" : "❌ Execution Failed"}
           </h4>
-          <p className="dsa-build-result__reason">{runMessage}</p>
-          <p className="dsa-build-result__step">XP earned this run: +{xpEarned}</p>
+          <p className="m-0 mb-1 text-xs leading-normal text-foreground">{runMessage}</p>
+          <p className="m-0 text-[11px] font-medium text-foreground">XP earned this run: +{xpEarned}</p>
         </motion.div>
       )}
     </>

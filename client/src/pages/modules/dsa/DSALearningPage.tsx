@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { trackDSAEvent } from "@/lib/analytics/dsa-events"
 import { BINARY_SEARCH_COMPLEXITY, BINARY_SEARCH_REFERENCE_CODE, generateBinarySearchSteps } from "@/lib/algorithms/binarySearch"
 import { BUBBLE_SORT_COMPLEXITY, BUBBLE_SORT_REFERENCE_CODE, generateBubbleSortSteps } from "@/lib/algorithms/bubbleSort"
-import { getDefaultPseudocode, runSafeBinarySearchPseudocode } from "@/lib/algorithms/safePseudocodeRunner"
-import type { ComplexityMeta, DSAAlgorithm, PlaybackState, DSAStep } from "@/types/dsa.types"
+import { runSafeBinarySearchPseudocode } from "@/lib/algorithms/safePseudocodeRunner"
+import { generateAIDSAQuestions } from "@/services/dsa-ai.service"
+import type { ComplexityMeta, DSAAlgorithm, PlaybackState, DSAStep, StepQuestion } from "@/types/dsa.types"
 import { DSAHeaderControls } from "./components/DSAHeaderControls"
 import { DSAVisualizer } from "./components/DSAVisualizer"
 import { DSAReferenceCode } from "./components/DSAReferenceCode"
 import { DSABuildPanel } from "./components/DSABuildPanel"
 import { DSAWatchPanel } from "./components/DSAWatchPanel"
-import "./DSALearningPage.css"
 
 const BINARY_DEFAULT_ARRAY = [2, 5, 8, 12, 16, 23, 38]
 const BINARY_DEFAULT_TARGET = 23
@@ -68,11 +68,14 @@ export default function DSALearningPage() {
   const [predictOverlayResult, setPredictOverlayResult] = useState<"correct" | "wrong" | null>(null)
   const [predictOverlayMessage, setPredictOverlayMessage] = useState<string | null>(null)
   const [predictXp, setPredictXp] = useState(0)
-  const [codeEditorValue, setCodeEditorValue] = useState(getDefaultPseudocode("binary-search"))
+  const [codeEditorValue, setCodeEditorValue] = useState("")
   const [codeRunSteps, setCodeRunSteps] = useState<DSAStep[] | null>(null)
   const [codeRunMessage, setCodeRunMessage] = useState<string | null>(null)
   const [codeRunStatus, setCodeRunStatus] = useState<"idle" | "success" | "error">("idle")
   const [codeRunXp, setCodeRunXp] = useState(0)
+  const [aiQuestionMap, setAiQuestionMap] = useState<Record<string, StepQuestion>>({})
+  const [isGeneratingAiQuestions, setIsGeneratingAiQuestions] = useState(false)
+  const [aiQuestionError, setAiQuestionError] = useState<string | null>(null)
 
   const startedSignatureRef = useRef("")
   const completedSignatureRef = useRef("")
@@ -117,25 +120,46 @@ export default function DSALearningPage() {
 
   const { resultLabel, complexity, referenceCode, algorithmLabel } = runtime
 
+  const runtimeStepsWithAI = useMemo(
+    () =>
+      runtime.steps.map((step) => {
+        const aiQuestion = aiQuestionMap[step.id]
+        if (!aiQuestion) {
+          return step
+        }
+
+        return {
+          ...step,
+          question: aiQuestion,
+        }
+      }),
+    [runtime.steps, aiQuestionMap]
+  )
+
   const activeSteps = useMemo(() => {
     if (playback.mode === "build" && codeRunSteps?.length) {
       return codeRunSteps
     }
-    return runtime.steps
-  }, [playback.mode, codeRunSteps, runtime.steps])
+    return runtimeStepsWithAI
+  }, [playback.mode, codeRunSteps, runtimeStepsWithAI])
 
   const maxStepIndex = Math.max(activeSteps.length - 1, 0)
   const currentStep = activeSteps[Math.min(playback.currentStep, maxStepIndex)]
   const stepNumber = Math.min(playback.currentStep + 1, activeSteps.length)
-  const completionPercent = activeSteps.length > 0 ? Math.round((stepNumber / activeSteps.length) * 100) : 0
+  const completionPercent =
+    playback.mode === "build" && !codeRunSteps?.length
+      ? 0
+      : activeSteps.length > 0
+        ? Math.round((stepNumber / activeSteps.length) * 100)
+        : 0
   const runSignature = `${algorithm}:${inputConfig.array.join(",")}:${inputConfig.target}`
 
   const questionStepIndices = useMemo(
     () =>
-      runtime.steps
+      runtimeStepsWithAI
         .map((step, index) => (step.question ? index : -1))
-        .filter((index) => index >= 0 && index < runtime.steps.length - 1),
-    [runtime.steps]
+        .filter((index) => index >= 0 && index < runtimeStepsWithAI.length - 1),
+    [runtimeStepsWithAI]
   )
 
   const predictPauseStep = useMemo(() => {
@@ -158,13 +182,95 @@ export default function DSALearningPage() {
     playback.mode === "predict" &&
     predictPauseStep !== null &&
     playback.currentStep === predictPauseStep
-      ? (runtime.steps[predictPauseStep]?.question ?? null)
+      ? (runtimeStepsWithAI[predictPauseStep]?.question ?? null)
       : null
 
   const isPredictOverlayVisible =
     playback.mode === "predict" &&
     activePredictQuestion !== null &&
     (!predictAnswered || Boolean(predictOverlayMessage))
+
+  useEffect(() => {
+    let cancelled = false
+
+    const aiCandidateSteps = runtime.steps
+      .filter((step) => Boolean(step.question))
+      .map((step) => ({
+        stepId: step.id,
+        type: step.type,
+        description: step.description,
+        codeLine: step.codeLine,
+        snapshot: step.snapshot as unknown as Record<string, unknown>,
+      }))
+
+    async function loadAIQuestions() {
+      setAiQuestionMap({})
+      setAiQuestionError(null)
+
+      if (!aiCandidateSteps.length) {
+        setIsGeneratingAiQuestions(false)
+        return
+      }
+
+      setIsGeneratingAiQuestions(true)
+
+      try {
+        const generated = await generateAIDSAQuestions({
+          algorithm,
+          context:
+            algorithm === "binary-search"
+              ? { array: inputConfig.array, target: inputConfig.target }
+              : { array: inputConfig.array },
+          steps: aiCandidateSteps,
+        })
+
+        if (cancelled) {
+          return
+        }
+
+        const map = generated.reduce<Record<string, StepQuestion>>((accumulator, item) => {
+          if (
+            item &&
+            typeof item.stepId === "string" &&
+            typeof item.text === "string" &&
+            Array.isArray(item.options) &&
+            Number.isInteger(item.correct) &&
+            item.correct >= 0 &&
+            item.correct < item.options.length &&
+            typeof item.explanation === "string" &&
+            item.options.length === 4
+          ) {
+            accumulator[item.stepId] = {
+              text: item.text,
+              options: item.options,
+              correct: item.correct,
+              explanation: item.explanation,
+            }
+          }
+
+          return accumulator
+        }, {})
+
+        setAiQuestionMap(map)
+      } catch {
+        if (cancelled) {
+          return
+        }
+
+        setAiQuestionError("AI questions unavailable. Using built-in questions.")
+      } finally {
+        if (!cancelled) {
+          setIsGeneratingAiQuestions(false)
+        }
+      }
+    }
+
+    loadAIQuestions()
+
+    return () => {
+      cancelled = true
+    }
+  }, [algorithm, inputConfig.array, inputConfig.target, runtime.steps])
 
   useEffect(() => {
     const startedSignature = `${runSignature}:${playback.mode}`
@@ -322,7 +428,7 @@ export default function DSALearningPage() {
         algorithm,
         mode: playback.mode,
         step: stepNumber,
-        totalSteps: runtime.steps.length,
+        totalSteps: runtimeStepsWithAI.length,
         details: `pause-step-${predictPauseStep ?? playback.currentStep}`,
       })
     } else {
@@ -331,7 +437,7 @@ export default function DSALearningPage() {
         algorithm,
         mode: playback.mode,
         step: stepNumber,
-        totalSteps: runtime.steps.length,
+        totalSteps: runtimeStepsWithAI.length,
         details: `pause-step-${predictPauseStep ?? playback.currentStep}`,
       })
     }
@@ -362,7 +468,7 @@ export default function DSALearningPage() {
     setCodeRunStatus("idle")
     setCodeRunXp(0)
     setCodeRunSteps(null)
-    setCodeEditorValue(getDefaultPseudocode(nextAlgorithm))
+    setCodeEditorValue("")
     setInputError(null)
 
     setPlayback((prev) => ({
@@ -530,8 +636,8 @@ export default function DSALearningPage() {
 
   if (!activeSteps.length) {
     return (
-      <div className="dsa-page font-sans">
-        <div className="dsa-card dsa-card--panel">
+      <div className="flex h-full flex-col gap-[14px] p-1 font-sans">
+        <div className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3">
           <h3 className="font-grotesk">Unable to load algorithm steps</h3>
           <p>Try resetting inputs or switching algorithm.</p>
         </div>
@@ -555,7 +661,7 @@ export default function DSALearningPage() {
       })()
 
   return (
-    <div className="dsa-page font-sans">
+    <div className="flex h-full flex-col gap-[14px] p-1 font-sans">
       <DSAHeaderControls
         algorithm={algorithm}
         algorithmLabel={algorithmLabel}
@@ -571,8 +677,8 @@ export default function DSALearningPage() {
         onSpeedChange={(value) => setPlayback((prev) => ({ ...prev, speedMs: value }))}
       />
 
-      <div className="dsa-page__content">
-        <div className="dsa-page__left">
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid min-h-0 grid-rows-[1fr_1fr] gap-3 xl:grid-rows-[1.2fr_1fr]">
           <DSAVisualizer
             currentStep={currentStep}
             isBinaryMode={isBinaryMode}
@@ -595,7 +701,7 @@ export default function DSALearningPage() {
           />
         </div>
 
-        <aside className="dsa-card dsa-card--panel">
+        <aside className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3 [&_h3]:mb-[10px] [&_h3]:text-[15px] [&_h4]:m-0 [&_h4]:text-xs [&_h4]:uppercase [&_h4]:tracking-[0.04em] [&_h4]:text-foreground [&_input]:h-9 [&_input]:rounded-lg [&_input]:border-border [&_input]:bg-background [&_input]:px-2.5 [&_input]:text-[13px] [&_input]:text-foreground [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-(--text-secondary)">
           {playback.mode === "build" ? (
             <DSABuildPanel
               algorithmLabel={algorithmLabel}
@@ -615,6 +721,8 @@ export default function DSALearningPage() {
               completionPercent={completionPercent}
               resultLabel={resultLabel}
               predictXp={predictXp}
+              isGeneratingAiQuestions={isGeneratingAiQuestions}
+              aiQuestionError={aiQuestionError}
               algorithm={algorithm}
               arrayInput={arrayInput}
               targetInput={targetInput}

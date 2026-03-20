@@ -24,9 +24,11 @@ export function DSAVisualizer({
   predictOverlayMessage,
 }: DSAVisualizerProps) {
   return (
-    <div className={`dsa-card dsa-card--visualizer ${predictOverlayResult ? `dsa-card--predict-${predictOverlayResult}` : ""}`}>
-      <div className={`dsa-array-canvas ${isBinaryMode ? "dsa-array-canvas--binary" : ""}`}>
-        <div className={`dsa-array ${isBinaryMode ? "dsa-array--binary" : ""}`}>
+    <div
+      className={`relative flex min-h-0 items-center justify-center rounded-xl border border-(--card-border) bg-card p-3 ${predictOverlayResult === "correct" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--success)_42%,transparent)]" : ""} ${predictOverlayResult === "wrong" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--danger)_42%,transparent)]" : ""}`}
+    >
+      <div className={`w-full ${isBinaryMode ? "flex min-h-full flex-col items-center justify-center gap-[14px]" : ""}`}>
+        <div className={`${isBinaryMode ? "flex w-max max-w-full items-start justify-center gap-[14px] overflow-x-auto px-2 py-1" : "grid w-full grid-cols-7 gap-2"}`}>
           {currentStep.snapshot.array.map((value, index) => {
             const binarySnapshot = currentStep.snapshot as BinarySearchSnapshot
             const bubbleSnapshot = currentStep.snapshot as BubbleSortSnapshot
@@ -45,53 +47,54 @@ export function DSAVisualizer({
               <motion.div
                 key={`${index}-${value}`}
                 layout
-                initial={{ opacity: 0.8, y: 6 }}
+                initial={{ opacity: 0.95, y: 6 }}
                 animate={{ opacity: 1, y: 0, scale: isSwap ? 1.04 : 1 }}
                 transition={{ duration: 0.2 }}
-                className={`dsa-array__item ${isBinaryMode ? "dsa-array__item--binary" : ""}`}
+                className={`${isBinaryMode ? "flex min-w-0 flex-col items-center gap-[7px]" : "min-w-0"}`}
               >
-                {isBinaryMode && <span className="dsa-array__index">index {index}</span>}
+                {isBinaryMode && <span className="text-[11px] leading-none text-(--text-secondary)">index {index}</span>}
 
                 <div
                   className={[
-                    "dsa-array__cell",
-                    inWindow ? "dsa-array__cell--window" : "",
-                    isBinaryMode && !inWindow ? "dsa-array__cell--excluded" : "",
-                    isLow ? "dsa-array__cell--low" : "",
-                    isHigh ? "dsa-array__cell--high" : "",
-                    isMid ? "dsa-array__cell--mid" : "",
-                    isFound ? "dsa-array__cell--found" : "",
-                    isCompare ? "dsa-array__cell--compare" : "",
-                    isSwap ? "dsa-array__cell--swap" : "",
-                    isSorted ? "dsa-array__cell--sorted" : "",
+                    "flex min-h-19 flex-col items-center justify-center gap-1.5 rounded-[10px] border border-border bg-(--bg-surface) transition-all duration-200",
+                    isBinaryMode ? "w-21 min-h-21 rounded-xl" : "",
+                    inWindow ? "border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_12%,var(--bg-surface))]" : "",
+                    isBinaryMode && !inWindow ? "border-[color-mix(in_oklab,var(--text-tertiary)_24%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--bg-elevated)_28%,var(--bg-surface))] opacity-75" : "",
+                    isLow ? "shadow-[0_0_0_1px_color-mix(in_oklab,var(--text-secondary)_35%,transparent)]" : "",
+                    isHigh ? "shadow-[0_0_0_1px_color-mix(in_oklab,var(--text-secondary)_35%,transparent)]" : "",
+                    isMid ? "border-(--accent) bg-[color-mix(in_oklab,var(--accent)_58%,var(--bg-surface))] shadow-[0_0_0_2px_color-mix(in_oklab,var(--accent)_52%,transparent)]" : "",
+                    isFound ? "border-(--success) bg-[color-mix(in_oklab,var(--success)_34%,var(--bg-surface))] shadow-[0_0_0_2px_color-mix(in_oklab,var(--success)_35%,transparent)]" : "",
+                    isCompare ? "border-[color-mix(in_oklab,var(--accent)_45%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_24%,var(--bg-surface))]" : "",
+                    isSwap ? "border-(--warning) bg-[color-mix(in_oklab,var(--warning)_44%,var(--bg-surface))] shadow-[0_0_0_2px_color-mix(in_oklab,var(--warning)_42%,transparent)]" : "",
+                    isSorted ? "border-[color-mix(in_oklab,var(--success)_55%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--success)_94%,var(--bg-surface))]" : "",
                   ].join(" ")}
                 >
-                  <span className="dsa-array__value">{value}</span>
+                  <span className="text-[19px] font-semibold text-foreground">{value}</span>
                   {!isBinaryMode && (
-                    <div className="dsa-array__meta">
-                      {isCompare && <em>cmp</em>}
-                      {isSwap && <em>swap</em>}
-                      {isSorted && <em>sorted</em>}
+                    <div className="flex gap-1">
+                      {isCompare && <em className="rounded-full bg-(--bg-elevated) px-1.5 py-px text-[10px] not-italic text-(--text-secondary)">cmp</em>}
+                      {isSwap && <em className="rounded-full bg-(--bg-elevated) px-1.5 py-px text-[10px] not-italic text-(--text-secondary)">swap</em>}
+                      {isSorted && <em className="rounded-full bg-(--bg-elevated) px-1.5 py-px text-[10px] not-italic text-(--text-secondary)">sorted</em>}
                     </div>
                   )}
                 </div>
 
                 {isBinaryMode && (
-                  <div className="dsa-array__pointers">
+                  <div className="flex min-h-[22px] flex-wrap items-center justify-center gap-1">
                     {isLow && (
-                      <span className="dsa-array__pointer-pill">
+                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-[7px] py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
                         <span aria-hidden="true">↑</span>
                         low
                       </span>
                     )}
                     {isMid && (
-                      <span className="dsa-array__pointer-pill dsa-array__pointer-pill--mid">
+                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-[7px] py-1 text-[10px] font-semibold leading-none text-foreground">
                         <span aria-hidden="true">↑</span>
                         mid
                       </span>
                     )}
                     {isHigh && (
-                      <span className="dsa-array__pointer-pill">
+                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-[7px] py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
                         <span aria-hidden="true">↑</span>
                         high
                       </span>
@@ -104,31 +107,31 @@ export function DSAVisualizer({
         </div>
 
         {isBinaryMode && (
-          <div className="dsa-array__legend" aria-label="Binary Search state legend">
-            <span className="dsa-array__legend-pill dsa-array__legend-pill--pivot">Current Pivot</span>
-            <span className="dsa-array__legend-pill">Unvisited</span>
-            <span className="dsa-array__legend-pill dsa-array__legend-pill--excluded">Excluded</span>
+          <div className="flex w-full flex-wrap items-center justify-center gap-1.5" aria-label="Binary Search state legend">
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-2.5 py-[5px] text-[11px] leading-none text-foreground">Current Pivot</span>
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-[5px] text-[11px] leading-none text-(--text-secondary)">Unvisited</span>
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-[5px] text-[11px] leading-none text-(--text-secondary) opacity-65">Excluded</span>
           </div>
         )}
 
         <AnimatePresence>
           {isPredictOverlayVisible && activePredictQuestion && (
             <motion.div
-              className="dsa-predict-overlay"
+              className="absolute top-1/2 left-1/2 z-5 flex w-[min(560px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-2.5 rounded-[14px] border border-border bg-[color-mix(in_oklab,var(--bg-elevated)_92%,black_8%)] p-[14px] shadow-[0_24px_50px_rgba(0,0,0,0.35)] backdrop-blur-xs"
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}
               transition={{ duration: 0.18 }}
             >
-              <p className="dsa-predict-overlay__eyebrow">Predict Mode</p>
-              <h4 className="dsa-predict-overlay__title font-grotesk">What happens next?</h4>
-              <p className="dsa-predict-overlay__question">{activePredictQuestion.text}</p>
+              <p className="m-0 text-[11px] uppercase tracking-[0.08em] text-(--text-secondary)">Predict Mode</p>
+              <h4 className="m-0 text-base text-foreground font-grotesk">What happens next?</h4>
+              <p className="m-0 text-[13px] text-(--text-secondary)">{activePredictQuestion.text}</p>
 
-              <div className="dsa-predict-overlay__options">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {activePredictQuestion.options.map((option, index) => (
                   <Button
                     key={`${option}-${index}`}
-                    className="dsa-predict-overlay__option"
+                    className="min-h-9 justify-start"
                     disabled={predictAnswered}
                     onClick={() => onSubmitPredictAnswer(index)}
                   >
@@ -137,7 +140,7 @@ export function DSAVisualizer({
                 ))}
               </div>
 
-              {predictOverlayMessage && <p className="dsa-predict-overlay__feedback">{predictOverlayMessage}</p>}
+              {predictOverlayMessage && <p className="m-0 text-xs text-foreground">{predictOverlayMessage}</p>}
             </motion.div>
           )}
         </AnimatePresence>

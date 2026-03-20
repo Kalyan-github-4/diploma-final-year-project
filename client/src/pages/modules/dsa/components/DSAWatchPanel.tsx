@@ -10,6 +10,8 @@ interface DSAWatchPanelProps {
   completionPercent: number
   resultLabel: string
   predictXp: number
+  isGeneratingAiQuestions: boolean
+  aiQuestionError: string | null
   algorithm: DSAAlgorithm
   arrayInput: string
   targetInput: string
@@ -27,6 +29,8 @@ export function DSAWatchPanel({
   completionPercent,
   resultLabel,
   predictXp,
+  isGeneratingAiQuestions,
+  aiQuestionError,
   algorithm,
   arrayInput,
   targetInput,
@@ -51,32 +55,35 @@ export function DSAWatchPanel({
         </motion.p>
       </AnimatePresence>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Progress</h4>
         <p>
           Step {stepNumber} / {totalSteps}
         </p>
-        <div className="dsa-progress-track">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--bg-surface)]">
           <motion.div
-            className="dsa-progress-fill"
+            className="h-full rounded-full bg-[var(--accent)]"
             animate={{ width: `${completionPercent}%` }}
             transition={{ duration: 0.2 }}
           />
         </div>
       </div>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Result</h4>
         <p>{resultLabel}</p>
         <p>Predict XP: +{predictXp}</p>
+        <p>{isGeneratingAiQuestions ? "AI: generating fresh predict questions..." : "AI: predict questions ready"}</p>
+        {aiQuestionError && <p className="text-[hsl(0_75%_55%)]">{aiQuestionError}</p>}
       </div>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Custom Input</h4>
-        <label className="dsa-input-label font-grotesk">
+        <label className="text-[11px] text-[var(--text-primary)] font-grotesk">
           Array{algorithm === "binary-search" ? " (ascending)" : ""}
         </label>
         <Input
+          className="h-9 rounded-lg border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 text-[13px] text-[var(--text-primary)]"
           value={arrayInput}
           onChange={(e) => onArrayInputChange(e.target.value)}
           placeholder={algorithm === "binary-search" ? "2, 5, 8, 12, 16" : "64, 34, 25, 12"}
@@ -84,8 +91,9 @@ export function DSAWatchPanel({
 
         {algorithm === "binary-search" && (
           <>
-            <label className="dsa-input-label font-grotesk">Target</label>
+            <label className="text-[11px] text-[var(--text-primary)] font-grotesk">Target</label>
             <Input
+              className="h-9 rounded-lg border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2.5 text-[13px] text-[var(--text-primary)]"
               value={targetInput}
               onChange={(e) => onTargetInputChange(e.target.value)}
               placeholder="23"
@@ -93,14 +101,14 @@ export function DSAWatchPanel({
           </>
         )}
 
-        {inputError && <p className="dsa-input-error">{inputError}</p>}
+        {inputError && <p className="text-[hsl(0_75%_55%)]">{inputError}</p>}
 
-        <Button className="dsa-apply-btn" onClick={onApplyCustomInput}>
+        <Button className="mt-0.5 h-9 rounded-lg border border-[var(--border-subtle)] bg-[var(--accent)] text-[13px] font-semibold text-white hover:opacity-95" onClick={onApplyCustomInput}>
           Apply & Re-run
         </Button>
       </div>
 
-      <div className="dsa-panel__section">
+      <div className="mt-[14px] flex flex-col gap-1.5">
         <h4 className="font-grotesk">Complexity</h4>
         <p>Best: {complexity.timeBest}</p>
         <p>Average: {complexity.timeAverage}</p>

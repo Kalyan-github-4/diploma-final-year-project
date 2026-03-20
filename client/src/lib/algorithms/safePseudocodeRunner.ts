@@ -86,28 +86,28 @@ function hasUnsafeToken(source: string): string | null {
 function normalizeLines(source: string): { text: string; line: number }[] {
   return source
     .split(/\r?\n/)
-    .map((text, index) => ({ text: text.trim(), line: index + 1 }))
-    .filter((entry) => entry.text.length > 0 && !entry.text.startsWith("//"))
+    .map((text, index) => ({ text: text.replace(/\/\/.*$/, "").trim(), line: index + 1 }))
+    .filter((entry) => entry.text.length > 0)
 }
 
 function parseBinaryStatement(text: string, line: number): BinaryStatement | null {
   const normalized = text.replace(/;+$/, "").trim().toLowerCase()
 
-  if (/^(let\s+)?low\s*=\s*0$/.test(normalized)) return { type: "ASSIGN_LOW_ZERO", line, text }
-  if (/^(let\s+)?high\s*=\s*arr\.length\s*-\s*1$/.test(normalized)) return { type: "ASSIGN_HIGH_LAST", line, text }
-  if (/^while\s+low\s*<=\s*high$/.test(normalized)) return { type: "WHILE_LE", line, text }
-  if (/^endwhile$/.test(normalized)) return { type: "ENDWHILE", line, text }
-  if (/^(let\s+)?mid\s*=\s*floor\s*\(\s*\(\s*low\s*\+\s*high\s*\)\s*\/\s*2\s*\)$/.test(normalized)) {
+  if (/^(let|const|var)?\s*low\s*=\s*0$/.test(normalized)) return { type: "ASSIGN_LOW_ZERO", line, text }
+  if (/^(let|const|var)?\s*high\s*=\s*arr\.length\s*-\s*1$/.test(normalized)) return { type: "ASSIGN_HIGH_LAST", line, text }
+  if (/^while\s*\(?\s*low\s*<=\s*high\s*\)?\s*(do)?\s*\{?$/.test(normalized)) return { type: "WHILE_LE", line, text }
+  if (/^(endwhile|end\s+while|done)$/.test(normalized)) return { type: "ENDWHILE", line, text }
+  if (/^(let|const|var)?\s*mid\s*=\s*(math\.)?floor\s*\(\s*\(\s*low\s*\+\s*high\s*\)\s*\/\s*2\s*\)$/.test(normalized)) {
     return { type: "ASSIGN_MID", line, text }
   }
-  if (/^if\s+arr\[mid\]\s*==\s*target$/.test(normalized)) return { type: "IF_EQ", line, text }
-  if (/^if\s+arr\[mid\]\s*<\s*target$/.test(normalized)) return { type: "IF_LT", line, text }
-  if (/^else$/.test(normalized)) return { type: "ELSE", line, text }
-  if (/^endif$/.test(normalized)) return { type: "ENDIF", line, text }
-  if (/^(let\s+)?low\s*=\s*mid\s*\+\s*1$/.test(normalized)) return { type: "ASSIGN_LOW_MID_PLUS", line, text }
-  if (/^(let\s+)?high\s*=\s*mid\s*-\s*1$/.test(normalized)) return { type: "ASSIGN_HIGH_MID_MINUS", line, text }
+  if (/^if\s*\(?\s*arr\s*\[\s*mid\s*\]\s*(==|===)\s*target\s*\)?\s*(then)?\s*\{?$/.test(normalized)) return { type: "IF_EQ", line, text }
+  if (/^if\s*\(?\s*arr\s*\[\s*mid\s*\]\s*<\s*target\s*\)?\s*(then)?\s*\{?$/.test(normalized)) return { type: "IF_LT", line, text }
+  if (/^else\s*\{?$/.test(normalized)) return { type: "ELSE", line, text }
+  if (/^(endif|end\s+if)$/.test(normalized)) return { type: "ENDIF", line, text }
+  if (/^(let|const|var)?\s*low\s*=\s*mid\s*\+\s*1$/.test(normalized)) return { type: "ASSIGN_LOW_MID_PLUS", line, text }
+  if (/^(let|const|var)?\s*high\s*=\s*mid\s*-\s*1$/.test(normalized)) return { type: "ASSIGN_HIGH_MID_MINUS", line, text }
   if (/^return\s+mid$/.test(normalized)) return { type: "RETURN_MID", line, text }
-  if (/^return\s*-1$/.test(normalized)) return { type: "RETURN_MINUS_ONE", line, text }
+  if (/^return\s*\(?\s*-1\s*\)?$/.test(normalized)) return { type: "RETURN_MINUS_ONE", line, text }
 
   return null
 }
@@ -115,16 +115,104 @@ function parseBinaryStatement(text: string, line: number): BinaryStatement | nul
 function compileBinaryStatements(source: string): { ok: true; statements: BinaryStatement[] } | { ok: false; error: string } {
   const normalizedLines = normalizeLines(source)
   const statements: BinaryStatement[] = []
+  const blockStack: Array<"WHILE" | "IF"> = []
 
   for (const entry of normalizedLines) {
+    const raw = entry.text.replace(/;+$/, "").trim()
+    const lowered = raw.toLowerCase()
+
+    if (lowered === "{") {
+      continue
+    }
+
+    if (/^}\s*else\b/i.test(raw)) {
+      if (blockStack[blockStack.length - 1] !== "IF") {
+        return {
+          ok: false,
+          error: `Line ${entry.line} has '} else' without an open IF block.`,
+        }
+      }
+
+      statements.push({ type: "ELSE", line: entry.line, text: entry.text })
+      continue
+    }
+
+    if (lowered === "}") {
+      const top = blockStack.pop()
+      if (!top) {
+        return {
+          ok: false,
+          error: `Line ${entry.line} has an unmatched closing brace '}'.`,
+        }
+      }
+
+      statements.push({
+        type: top === "IF" ? "ENDIF" : "ENDWHILE",
+        line: entry.line,
+        text: entry.text,
+      })
+      continue
+    }
+
+    if (/^else\s+if\b/i.test(raw)) {
+      return {
+        ok: false,
+        error: `Line ${entry.line}: 'else if' is not supported yet. Use ELSE then IF on next line.`,
+      }
+    }
+
     const statement = parseBinaryStatement(entry.text, entry.line)
     if (!statement) {
       return {
         ok: false,
-        error: `Line ${entry.line} is not a valid command. Use the supported pseudocode syntax only.`,
+        error: `Line ${entry.line} is not valid pseudocode for this runner. Supported forms include while(low <= high), if(arr[mid] === target), Math.floor(...), and brace or ENDIF/ENDWHILE blocks.`,
       }
     }
+
+    if (statement.type === "WHILE_LE") {
+      blockStack.push("WHILE")
+    }
+
+    if (statement.type === "IF_EQ" || statement.type === "IF_LT") {
+      blockStack.push("IF")
+    }
+
+    if (statement.type === "ELSE" && blockStack[blockStack.length - 1] !== "IF") {
+      return {
+        ok: false,
+        error: `Line ${entry.line}: ELSE must be inside an IF block.`,
+      }
+    }
+
+    if (statement.type === "ENDIF") {
+      const top = blockStack.pop()
+      if (top !== "IF") {
+        return {
+          ok: false,
+          error: `Line ${entry.line}: ENDIF has no matching IF.`,
+        }
+      }
+    }
+
+    if (statement.type === "ENDWHILE") {
+      const top = blockStack.pop()
+      if (top !== "WHILE") {
+        return {
+          ok: false,
+          error: `Line ${entry.line}: ENDWHILE has no matching WHILE.`,
+        }
+      }
+    }
+
     statements.push(statement)
+  }
+
+  if (blockStack.length > 0) {
+    const pending = blockStack[blockStack.length - 1]
+    return {
+      ok: false,
+      error: pending === "IF" ? "Missing ENDIF or closing '}' for IF block." : "Missing ENDWHILE or closing '}' for WHILE block.",
+    }
   }
 
   if (!statements.length) {
