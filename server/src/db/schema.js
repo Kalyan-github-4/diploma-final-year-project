@@ -22,6 +22,8 @@ const generatedMissions = pgTable("generated_missions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
+
+
 const modulesTable = pgTable("modules", {
   id: serial("id").primaryKey(),
 

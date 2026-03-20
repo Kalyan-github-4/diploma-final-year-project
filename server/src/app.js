@@ -5,6 +5,7 @@ const { ensureDatabaseSchema } = require("./db/bootstrap")
 const missionsRouter = require("./routes/missions.routes")
 const aiRouter = require("./routes/ai.routes")
 const modulesRoute = require("./routes/modules.routes")
+const curatedMissionsAdminRouter = require("./routes/curatedMissions.routes")
 
 
 const app = express()
@@ -21,6 +22,7 @@ app.get("/api/health", (_req, res) => {
 	res.status(200).json({ status: "ok", ts: new Date().toISOString() })
 })
 
+app.use("/api/git/curated-missions-admin", curatedMissionsAdminRouter)
 app.use("/api/git/missions", missionsRouter)
 app.use("/api/ai", aiRouter)
 app.use("/api/modules", modulesRoute)

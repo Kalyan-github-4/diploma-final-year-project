@@ -9,6 +9,7 @@ const requestSchema = z.object({
   userId: z.string().min(1),
   level: z.coerce.number().int().min(1).max(50),
   topic: z.string().min(1).max(120).optional(),
+  generationNonce: z.string().min(6).max(120).optional(),
 })
 
 async function generateMissions(req, res) {
@@ -21,10 +22,10 @@ async function generateMissions(req, res) {
       })
     }
 
-    const { userId, level, topic } = parsed.data
+    const { userId, level, topic, generationNonce } = parsed.data
 
     await upsertUserProfile({ userId, level })
-    const missions = await replaceUserMissionBatch({ userId, level, topic })
+    const missions = await replaceUserMissionBatch({ userId, level, topic, generationNonce })
 
     return res.status(200).json({
       userId,

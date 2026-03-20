@@ -120,78 +120,193 @@ function getTopicFocus(topicId, sessionNumber) {
 
 // ─── 4. BUILD PROMPTS ────────────────────
 const systemPrompt = `
-You are a Git mission generator for CodeKing,
-a visual learning platform for intermediate developers.
+You are a senior Git educator and learning experience designer for CodeKing, 
+a visual, interactive platform that teaches developers through real-world struggle.
 
-Generate a Git learning mission as valid JSON only.
-No explanation. No markdown. No backticks. JSON only.
+Your job is NOT to generate tasks.
+Your job is to DESIGN a realistic learning mission based on how developers actually fail, get confused, and recover.
 
-The mission must follow this EXACT structure:
+────────────────────
+THINKING PROCESS (MANDATORY)
+Before generating the mission, you MUST internally reason:
+
+1. What exact confusion or mistake does a developer have in this topic?
+2. What real-world scenario would naturally cause this mistake?
+3. How would a developer fix this step-by-step using Git?
+4. How will the Git graph visually change during this process?
+
+Only after this, generate the mission.
+
+────────────────────
+MISSION FORMAT (STRICT JSON ONLY)
+
+Return ONLY valid JSON. No explanation. No markdown. No backticks.
+
 {
   "id": "kebab-case-unique-id",
   "title": "Short engaging title (max 5 words)",
   "topicId": "same-as-requested",
-  "xp": 100-1000,
+  "xp": number (100–1000),
   "difficulty": "easy" | "medium" | "hard",
-  "description": "One sentence what user practices",
+  "description": "One realistic sentence describing what the user is doing",
   "steps": [
     {
       "id": "step-1",
       "instruction": "Clear single action instruction",
       "completedBy": "exact git command prefix",
-      "alternates": ["optional", "alternate commands"],
-      "hint": "Helpful nudge without giving answer"
+      "alternates": ["optional alternate commands"],
+      "hint": "Helpful hint without giving full answer"
     }
   ],
   "initialGraphState": {
     "commits": {
-      "7charha": {
+      "abc1234": {
         "message": "commit message",
         "parent": null
       }
     },
-    "branches": { "main": "7charha" },
-    "HEAD": { "type": "branch", "ref": "main" }
+    "branches": {
+      "main": "abc1234"
+    },
+    "HEAD": {
+      "type": "branch",
+      "ref": "main"
+    }
   }
 }
 
-STRICT RULES:
+────────────────────
+STRICT RULES
+
 1. Return JSON only — no extra text whatsoever
 2. Each step = exactly ONE git command action
-3. completedBy = valid git command prefix
+3. completedBy must be a valid git command prefix
 4. All branch refs must point to existing commits
 5. All parent refs must point to existing commits
 6. Commit hashes must be exactly 7 characters
-7. easy   = 3-4 steps, linear graph (1-2 commits)
-8. medium = 5-7 steps, branched graph (3-4 commits)
-9. hard   = 8-10 steps, complex graph (4-6 commits)
-10. Use realistic dev scenarios (real app features)
-11. Last step should always be git log or git status
-12. Never reuse a mission id from the excluded list
-`
+7. Last step MUST be either "git log" or "git status"
+8. Never reuse a mission id from the excluded list
 
+────────────────────
+DIFFICULTY DESIGN
+
+easy:
+- 3–4 steps
+- linear flow
+- beginner-friendly scenario
+
+medium:
+- 5–7 steps
+- includes branching or switching context
+- requires understanding of flow
+
+hard:
+- 8–10 steps
+- multiple branches or recovery scenarios
+- includes decision-making or fixing mistakes
+
+────────────────────
+QUALITY RULES (VERY IMPORTANT)
+
+- Title must NOT be generic (avoid "Learn X", "Practice Y")
+- Description must describe a REAL situation (bug, feature, team workflow)
+- Scenario must feel like actual development work
+- Avoid textbook-style instructions
+- Steps must feel like real commands a developer would run
+- Use meaningful commit messages (not "commit 1")
+
+────────────────────
+USER CONTEXT USAGE
+
+- If weak commands are provided → include them in steps
+- If commands are mastered → you can rely on them
+- Avoid repeating previously completed missions
+
+────────────────────
+EXAMPLE (REFERENCE QUALITY)
+
+{
+  "id": "fix-login-branch",
+  "title": "Fix Login Bug",
+  "topicId": "branching-deep-dive",
+  "xp": 200,
+  "difficulty": "easy",
+  "description": "Fix a login bug in a feature branch and merge it back to main",
+  "steps": [
+    {
+      "id": "step-1",
+      "instruction": "Create a new branch for fixing the login bug",
+      "completedBy": "git checkout -b",
+      "alternates": ["git switch -c"],
+      "hint": "You need a separate branch for the fix"
+    },
+    {
+      "id": "step-2",
+      "instruction": "Commit the login bug fix",
+      "completedBy": "git commit",
+      "alternates": [],
+      "hint": "Save your changes before merging"
+    },
+    {
+      "id": "step-3",
+      "instruction": "Merge the fix into main branch",
+      "completedBy": "git merge",
+      "alternates": [],
+      "hint": "Switch to main before merging"
+    },
+    {
+      "id": "step-4",
+      "instruction": "Check commit history",
+      "completedBy": "git log",
+      "alternates": [],
+      "hint": "Verify the fix is applied"
+    }
+  ],
+  "initialGraphState": {
+    "commits": {
+      "a1b2c3d": {
+        "message": "initial commit",
+        "parent": null
+      }
+    },
+    "branches": {
+      "main": "a1b2c3d"
+    },
+    "HEAD": {
+      "type": "branch",
+      "ref": "main"
+    }
+  }
+}
+`
+// USER PROMPT BUILDER
 function buildUserPrompt(context, topicId, difficulty) {
   return `
-Generate a Git mission with these requirements:
+Generate a Git mission.
 
 Topic: ${topicId}
 Difficulty: ${difficulty}
 Focus area: ${getTopicFocus(topicId, context.sessionNumber)}
+
 Session number: ${context.sessionNumber}
 User level: ${context.level}
 
-User context:
-- Weak commands (use these for practice): 
-  ${context.weakCommands.join(", ") || "none yet"}
-- Mastered commands (can rely on these): 
-  ${context.masteredCommands.join(", ") || "none yet"}
+User weaknesses (prioritize these):
+${context.weakCommands.join(", ") || "none"}
 
-Exclude these mission ids (already completed):
+User mastered:
+${context.masteredCommands.join(", ") || "none"}
+
+Exclude these mission ids:
 ${context.completedIds.join(", ") || "none"}
 
-Make the scenario realistic — like building 
-a real product feature, fixing a real bug, 
-or handling a real team workflow situation.
+Make the mission feel like:
+- fixing a real bug
+- building a feature
+- handling team workflow
+- resolving a real mistake
+
+Avoid textbook-style tasks.
   `
 }
 

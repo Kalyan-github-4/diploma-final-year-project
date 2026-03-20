@@ -18,9 +18,17 @@ async function upsertUserProfile({ userId, level }) {
     })
 }
 
-async function replaceUserMissionBatch({ userId, level, topic }) {
+async function replaceUserMissionBatch({ userId, level, topic, generationNonce }) {
   const { db } = getDb()
-  const missions = await generateMissionSet({ userId, level, topic })
+  const existingRows = await db
+    .select({ missionData: generatedMissions.missionData })
+    .from(generatedMissions)
+    .where(and(eq(generatedMissions.userId, userId), eq(generatedMissions.level, level)))
+    .orderBy(asc(generatedMissions.orderIndex))
+
+  const previousMissions = existingRows.map((row) => row.missionData)
+  // Only use AI-generated missions
+  const missions = await generateMissionSet({ userId, level, topic, generationNonce, previousMissions })
 
   await db
     .delete(generatedMissions)
