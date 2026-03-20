@@ -4,7 +4,6 @@ import { getBranchColor } from "@/lib/gitSimulator"
 import CommitNode from "./CommitNode"
 import BranchLabel from "./BranchLabel"
 import HeadPointer from "./HeadPointer"
-import "./GitGraph.css"
 
 interface GitGraphProps {
   gitState: GitState
@@ -185,9 +184,9 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
   const maxY = allYs.length > 0 ? Math.max(...allYs) + 100 : 300
 
   return (
-    <div className="git-graph">
+    <div className="relative min-h-0 flex-1 overflow-auto bg-background p-8">
       <svg
-        className="git-graph__svg"
+        className="h-full w-full"
         viewBox={`0 0 ${maxX} ${maxY}`}
         preserveAspectRatio="xMinYMid meet"
       >
@@ -204,7 +203,9 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
             <path
               key={`line-${i}`}
               d={`M${line.x1},${line.y1} C${(line.x1 + line.x2) / 2},${line.y1} ${(line.x1 + line.x2) / 2},${line.y2} ${line.x2},${line.y2}`}
-              className="git-graph__line git-graph__line--animate"
+              fill="none"
+              strokeWidth={2}
+              strokeLinecap="round"
               stroke={line.color}
             />
           ) : (
@@ -214,7 +215,9 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
               y1={line.y1}
               x2={line.x2}
               y2={line.y2}
-              className="git-graph__line git-graph__line--animate"
+              fill="none"
+              strokeWidth={2}
+              strokeLinecap="round"
               stroke={line.color}
             />
           )
@@ -256,7 +259,7 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
 
         {/* Fork-tip ghost nodes for branches with no own commits yet */}
         {branchPointers.map((p) => (
-          <g key={`fork-${p.name}`} className="commit-node--enter" style={{ transformOrigin: `${p.tipX}px ${p.tipY}px` }}>
+          <g key={`fork-${p.name}`} style={{ transformOrigin: `${p.tipX}px ${p.tipY}px` }}>
             {/* Glow ring if HEAD */}
             {headInfo?.branchName === p.name && (
               <circle cx={p.tipX} cy={p.tipY} r={16} fill="none" stroke={p.color} strokeWidth={1} opacity={0.3} />
@@ -269,7 +272,7 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
               stroke={p.color}
               strokeWidth={2}
               strokeDasharray={headInfo?.branchName === p.name ? "none" : "4 2"}
-              className={headInfo?.branchName === p.name ? "commit-node__circle--head" : ""}
+              style={headInfo?.branchName === p.name ? { filter: "drop-shadow(0 0 8px rgba(99, 102, 241, 0.5))" } : undefined}
             />
           </g>
         ))}

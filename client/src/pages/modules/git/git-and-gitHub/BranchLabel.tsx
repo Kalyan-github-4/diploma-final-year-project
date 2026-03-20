@@ -25,8 +25,10 @@ export default function BranchLabel({ x, y, name, color }: BranchLabelProps) {
         x={x}
         y={y + 4}
         textAnchor="middle"
-        className="branch-label__text"
         fill={color}
+        fontFamily="JetBrains Mono, monospace"
+        fontSize={11}
+        fontWeight={600}
       >
         {name}
       </text>

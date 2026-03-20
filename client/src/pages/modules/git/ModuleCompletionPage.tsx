@@ -1,7 +1,8 @@
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { useState } from "react"
-import { ArrowLeft, Zap, RotateCcw, ArrowRight } from "lucide-react"
+import { ArrowLeft, Crown, Target, Zap, RotateCcw, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { renderGitIcon } from "@/pages/modules/git/git-icons"
 import {
   gitLevels,
   gitBadges,
@@ -33,13 +34,15 @@ export default function ModuleCompletionPage() {
 
       {/* ── Hero ── */}
       <div className="text-center mb-10">
-        <div className="text-7xl mb-4">{allComplete ? "🏆" : "🎯"}</div>
+        <div className="mb-4 flex justify-center">
+          {allComplete ? <Crown size={56} className="text-(--accent)" /> : <Target size={56} className="text-(--accent)" />}
+        </div>
         <h1 className="text-3xl font-bold font-grotesk text-foreground">
-          {allComplete ? "Module Complete!" : "Great Progress!"}
+          {allComplete ? "Git & GitHub King!" : "Great Progress!"}
         </h1>
         <p className="text-muted-foreground mt-2">
           {allComplete
-            ? "You've mastered Git & GitHub. Every level conquered!"
+            ? "You completed the full path from basics to advanced real-world workflows."
             : `You've completed ${completedCount} of ${totalLevels} levels. Keep going!`}
         </p>
       </div>
@@ -101,7 +104,7 @@ export default function ModuleCompletionPage() {
                 }`}
               >
                 <span className={`text-3xl ${earned ? "" : "grayscale"}`}>
-                  {badge.icon}
+                  {renderGitIcon(badge.icon, 28, earned ? "text-(--accent)" : "text-muted-foreground")}
                 </span>
                 <span className="text-xs font-medium text-center text-foreground leading-tight">
                   {badge.label}
@@ -128,7 +131,7 @@ export default function ModuleCompletionPage() {
                 key={level.id}
                 className="flex items-center gap-3 p-3 rounded-xl bg-(--bg-elevated) border border-border"
               >
-                <span className="text-xl w-7 text-center">{level.icon}</span>
+                <span className="w-7 text-center text-(--accent)">{renderGitIcon(level.icon, 18, "text-(--accent)")}</span>
                 <div className="flex-1 min-w-0">
                   <span className="text-sm font-medium text-foreground">
                     {level.title}

@@ -4,6 +4,7 @@ interface GenerateMissionPayload {
   userId: string
   level: number
   topic?: string
+  generationNonce?: string
 }
 
 interface MissionApiResponse {

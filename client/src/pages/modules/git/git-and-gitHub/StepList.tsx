@@ -12,23 +12,31 @@ function renderInstruction(instruction: string) {
 
   return parts.map((part, index) => {
     const isCode = index % 2 === 1
-    return isCode ? <code key={`${part}-${index}`}>{part}</code> : part
+    return isCode ? <code key={`${part}-${index}`} className="rounded bg-[rgba(99,102,241,0.08)] px-1.5 py-px font-mono text-xs text-(--accent)">{part}</code> : part
   })
 }
 
 export default function StepList({ steps, currentStep, completedSteps }: StepListProps) {
   return (
     <div>
-      <div className="step-list__heading">Instructions</div>
-      <div className="step-list__items">
+      <div className="mb-3 font-mono text-[11px] uppercase tracking-[1.5px] text-(--text-tertiary)">Instructions</div>
+      <div className="flex flex-col gap-4">
         {steps.map((step, index) => {
           const isCompleted = completedSteps.includes(step.id)
           const isActive = index === currentStep && !isCompleted
           const status = isCompleted ? "completed" : isActive ? "active" : "pending"
 
           return (
-            <div key={step.id} className="step-item">
-              <div className={`step-item__indicator step-item__indicator--${status}`}>
+            <div key={step.id} className="flex items-start gap-3">
+              <div
+                className={`mt-px flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                  status === "completed"
+                    ? "bg-(--success)"
+                    : status === "active"
+                      ? "animate-pulse bg-(--accent)"
+                      : "border-2 border-border bg-transparent"
+                }`}
+              >
                 {isCompleted && <Check size={12} />}
                 {isActive && (
                   <div
@@ -41,7 +49,15 @@ export default function StepList({ steps, currentStep, completedSteps }: StepLis
                   />
                 )}
               </div>
-              <span className={`step-item__text step-item__text--${status}`}>
+              <span
+                className={`text-[13px] leading-normal ${
+                  status === "completed"
+                    ? "text-(--text-tertiary)"
+                    : status === "active"
+                      ? "text-foreground"
+                      : "text-(--text-secondary)"
+                }`}
+              >
                 {renderInstruction(step.instruction)}
               </span>
             </div>

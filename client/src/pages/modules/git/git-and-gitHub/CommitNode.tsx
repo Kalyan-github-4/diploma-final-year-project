@@ -18,7 +18,9 @@ export default function CommitNode({
   isNew,
 }: CommitNodeProps) {
   return (
-    <g className={isNew ? "commit-node--enter" : ""} style={{ transformOrigin: `${cx}px ${cy}px` }}>
+    <g style={{ transformOrigin: `${cx}px ${cy}px` }}>
+      {isNew && <circle cx={cx} cy={cy} r={18} fill="none" stroke={color} strokeWidth={1.5} opacity={0.35} />}
+
       {/* Glow ring for HEAD */}
       {isHead && (
         <circle cx={cx} cy={cy} r={16} fill="none" stroke={color} strokeWidth={1} opacity={0.3} />
@@ -29,18 +31,33 @@ export default function CommitNode({
         cx={cx}
         cy={cy}
         r={10}
-        className={isHead ? "commit-node__circle--head" : "commit-node__circle"}
+        fill={isHead ? color : "var(--bg-surface)"}
         stroke={color}
-        style={isHead ? { fill: color } : undefined}
+        strokeWidth={2}
+        style={{ transition: "all 0.3s ease", filter: isHead ? "drop-shadow(0 0 8px rgba(99, 102, 241, 0.5))" : undefined }}
       />
 
       {/* Hash label */}
-      <text x={cx} y={cy + 28} textAnchor="middle" className="commit-label">
-        <tspan className="commit-label__hash">{hash.slice(0, 7)}</tspan>
+      <text
+        x={cx}
+        y={cy + 28}
+        textAnchor="middle"
+        fill="var(--text-secondary)"
+        fontFamily="JetBrains Mono, monospace"
+        fontSize={10}
+      >
+        <tspan>{hash.slice(0, 7)}</tspan>
       </text>
 
       {/* Message label */}
-      <text x={cx} y={cy + 42} textAnchor="middle" className="commit-label">
+      <text
+        x={cx}
+        y={cy + 42}
+        textAnchor="middle"
+        fill="var(--text-tertiary)"
+        fontFamily="JetBrains Mono, monospace"
+        fontSize={10}
+      >
         ({message})
       </text>
     </g>

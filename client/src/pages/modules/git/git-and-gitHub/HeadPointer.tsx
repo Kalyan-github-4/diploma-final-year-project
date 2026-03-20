@@ -23,7 +23,9 @@ export default function HeadPointer({ x, y, branchName }: HeadPointerProps) {
         x={x}
         y={y - 30}
         textAnchor="middle"
-        className="head-pointer__text"
+        fill="var(--text-secondary)"
+        fontFamily="JetBrains Mono, monospace"
+        fontSize={11}
       >
         HEAD → {branchName}
       </text>

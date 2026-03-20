@@ -16,7 +16,38 @@ import {
   completeLevel,
 } from "@/pages/modules/git/levels.data"
 import LevelCompletionModal from "@/pages/modules/git/LevelCompletionModal"
-import "./GitLearningPage.css"
+
+function isAncestor(
+  commits: Record<string, Commit>,
+  ancestorId: string,
+  descendantId: string
+): boolean {
+  let cursor: string | null = descendantId
+
+  while (cursor && commits[cursor]) {
+    if (cursor === ancestorId) return true
+    cursor = commits[cursor].parent
+  }
+
+  return false
+}
+
+function countDistanceToAncestor(
+  commits: Record<string, Commit>,
+  ancestorId: string,
+  descendantId: string
+): number {
+  let cursor: string | null = descendantId
+  let distance = 0
+
+  while (cursor && commits[cursor]) {
+    if (cursor === ancestorId) return distance
+    cursor = commits[cursor].parent
+    distance += 1
+  }
+
+  return 0
+}
 
 /* Build initial GitState from any mission's graph data */
 function buildInitialState(mission: Mission): GitState {
@@ -54,6 +85,15 @@ function buildInitialState(mission: Mission): GitState {
     staging: [],
     workingDir: [{ name: "README.md", status: "modified" }],
     initialized: hasInit,
+    remotes: { ...(mg.remotes || { origin: "https://github.com/codeking/simulated-repo.git" }) },
+    upstreams: { ...(mg.upstreams || {}) },
+    pullRequests: [...(mg.pullRequests || [])],
+    nextPullRequestId: mg.nextPullRequestId || 1,
+    conflictRules: [...(mg.conflictRules || [])],
+    mergeConflict: null,
+    stashStack: [],
+    tags: {},
+    reflog: [],
   }
 }
 
@@ -65,6 +105,15 @@ function buildEmptyState(): GitState {
     staging: [],
     workingDir: [],
     initialized: false,
+    remotes: {},
+    upstreams: {},
+    pullRequests: [],
+    nextPullRequestId: 1,
+    conflictRules: [],
+    mergeConflict: null,
+    stashStack: [],
+    tags: {},
+    reflog: [],
   }
 }
 
@@ -96,6 +145,7 @@ export default function GitLearningPage() {
   const [currentStep, setCurrentStep] = useState(0)
   const [completedSteps, setCompletedSteps] = useState<string[]>([])
   const [showHint, setShowHint] = useState(false)
+  const [coachingTips, setCoachingTips] = useState<string[]>([])
   const [timer, setTimer] = useState(0)
   const [missionComplete, setMissionComplete] = useState(false)
   const [newCommitId, setNewCommitId] = useState<string | null>(null)
@@ -108,6 +158,7 @@ export default function GitLearningPage() {
     setCompletedSteps([])
     setTimer(0)
     setShowHint(false)
+    setCoachingTips([])
     setNewCommitId(null)
     setInputValue("")
     setHintsUsed(0)
@@ -121,6 +172,7 @@ export default function GitLearningPage() {
     setCompletedSteps([])
     setTimer(0)
     setShowHint(false)
+    setCoachingTips([])
     setNewCommitId(null)
     setInputValue("")
     setHintsUsed(0)
@@ -140,12 +192,14 @@ export default function GitLearningPage() {
       setMissionIndex(0)
       resetToEmptyState()
       const userId = localStorage.getItem("codeking_user_id") || "guest-user"
+      const generationNonce = `${Date.now()}-${retryKey}-${Math.random().toString(36).slice(2, 8)}`
 
       try {
         const generated = await generateGitMissions({
           userId,
           level: levelId,
           topic: levelData.topic,
+          generationNonce,
         })
 
         if (cancelled) return
@@ -160,6 +214,7 @@ export default function GitLearningPage() {
         setLoadError("No AI-generated missions were returned for this level.")
       } catch {
         if (cancelled) return
+
         setLoadError("Mission generation is unavailable right now. Please retry.")
       } finally {
         if (!cancelled) {
@@ -185,6 +240,50 @@ export default function GitLearningPage() {
   /* Current branch for terminal prompt */
   const currentBranch =
     gitState.HEAD.type === "branch" ? gitState.HEAD.ref : "HEAD"
+
+  const currentBranchTip =
+    gitState.HEAD.type === "branch" ? gitState.branches[gitState.HEAD.ref] : null
+  const upstreamRef =
+    gitState.HEAD.type === "branch"
+      ? gitState.upstreams?.[gitState.HEAD.ref] || `origin/${gitState.HEAD.ref}`
+      : null
+  const upstreamTip = upstreamRef ? gitState.branches[upstreamRef] : null
+
+  let aheadBy = 0
+  let behindBy = 0
+  if (currentBranchTip && upstreamTip) {
+    if (isAncestor(gitState.commits, currentBranchTip, upstreamTip)) {
+      behindBy = countDistanceToAncestor(gitState.commits, currentBranchTip, upstreamTip)
+    } else if (isAncestor(gitState.commits, upstreamTip, currentBranchTip)) {
+      aheadBy = countDistanceToAncestor(gitState.commits, upstreamTip, currentBranchTip)
+    }
+  }
+
+  const remoteBranches = Object.keys(gitState.branches).filter((name) => name.includes("/"))
+  const openPr = (gitState.pullRequests || []).find((pr) => pr.status === "open") || null
+
+  const getTipsFromOutput = (output: string): string[] => {
+    const tips: string[] = []
+    const text = output.toLowerCase()
+
+    if (text.includes("fatal: not possible to fast-forward") || text.includes("divergent")) {
+      tips.push("Remote has diverged; run git pull --rebase before pushing.")
+    }
+    if (text.includes("merge conflict") || text.includes("conflict")) {
+      tips.push("Resolve conflicted files, then run git add and git merge --continue.")
+    }
+    if (text.includes("no upstream") || text.includes("set-upstream")) {
+      tips.push("Set tracking once with git push -u origin <branch>.")
+    }
+    if (text.includes("changes requested")) {
+      tips.push("Review feedback and push follow-up commits to the same branch.")
+    }
+    if (text.includes("checks pending") || text.includes("checks are still pending")) {
+      tips.push("Wait for CI checks to pass before attempting merge.")
+    }
+
+    return tips
+  }
 
   /* Process a command */
   const handleSubmit = useCallback(() => {
@@ -220,6 +319,17 @@ export default function GitLearningPage() {
           outputType: isError ? "error" : isSuccess ? "success" : "normal",
         },
       ])
+
+      const nextTips = getTipsFromOutput(result.output)
+      if (nextTips.length > 0) {
+        setCoachingTips((prev) => {
+          const merged = [...prev]
+          for (const tip of nextTips) {
+            if (!merged.includes(tip)) merged.push(tip)
+          }
+          return merged.slice(-5)
+        })
+      }
     }
 
     /* Update git state */
@@ -289,35 +399,44 @@ export default function GitLearningPage() {
     setRetryKey((k) => k + 1)
   }, [])
 
+  const handleGenerateNewSet = useCallback(() => {
+    if (isLoadingMissions) return
+    hasMarkedLevelComplete.current = false
+    setHintsUsed(0)
+    setRetryKey((k) => k + 1)
+  }, [isLoadingMissions])
+
   /* Navigate to the next level */
   const handleNextLevel = useCallback(() => {
     navigate(`/modules/${slug}/level/${levelId + 1}`)
   }, [navigate, slug, levelId])
 
   return (
-    <div className="git-learning-page">
+    <div className="-m-6 flex h-[calc(100%+48px)] flex-col overflow-hidden">
       {/* Zone 1: Top Bar */}
       <TopBar
         missionTitle={isLoadingMissions ? "Generating AI mission..." : mission?.title || "No mission available"}
         timer={timer}
         onRunTest={handleRunTest}
+        onGenerateNewSet={handleGenerateNewSet}
+        isGenerating={isLoadingMissions}
         module={currentModule}
         topic={currentTopic}
       />
 
       {/* Body: Main + Mission Control */}
-      <div className="git-learning-page__body">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
         {isLoadingMissions ? (
           <>
-            <div className="git-learning-page__main git-learning-page__loading-main">
-              <div className="git-learning-page__graph git-learning-page__loading-panel">
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+              <div className="flex min-h-0 flex-55 overflow-hidden bg-card">
                 <Skeleton className="h-full w-full rounded-none" />
               </div>
-              <div className="git-learning-page__terminal git-learning-page__loading-panel">
+              <div className="flex min-h-0 flex-45 overflow-hidden bg-card">
                 <Skeleton className="h-full w-full rounded-none" />
               </div>
             </div>
-            <aside className="mission-control git-learning-page__loading-sidebar">
+            <aside className="flex w-[380px] min-w-[320px] flex-col gap-3 p-[18px]">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-6 w-20" />
               <Skeleton className="h-24 w-full" />
@@ -329,14 +448,14 @@ export default function GitLearningPage() {
         ) : mission ? (
           <>
             {/* Zone 2: Main Area */}
-            <div className="git-learning-page__main">
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               {/* Zone 2A: Git Graph */}
-              <div className="git-learning-page__graph">
+              <div className="flex min-h-0 flex-55 overflow-hidden">
                 <GitGraph gitState={gitState} newCommitId={newCommitId} />
               </div>
 
               {/* Zone 2B: Terminal */}
-              <div className="git-learning-page__terminal">
+              <div className="flex min-h-0 flex-45 overflow-hidden">
                 <Terminal
                   history={terminalHistory}
                   currentBranch={currentBranch}
@@ -354,6 +473,15 @@ export default function GitLearningPage() {
               currentStep={currentStep}
               completedSteps={completedSteps}
               showHint={showHint}
+              teamSync={{
+                branch: currentBranch,
+                upstream: upstreamRef,
+                aheadBy,
+                behindBy,
+                remoteBranches,
+              }}
+              prStatus={openPr}
+              coachingTips={coachingTips}
               onToggleHint={() => {
                 if (!showHint) setHintsUsed((h) => h + 1)
                 setShowHint((s) => !s)
@@ -362,10 +490,13 @@ export default function GitLearningPage() {
             />
           </>
         ) : (
-          <div className="git-learning-page__empty-state">
-            <h3>No AI-generated missions yet</h3>
-            <p>{loadError || "Try generating this level again."}</p>
-            <button className="git-learning-page__retry-btn" onClick={handleRetryLevel}>
+          <div className="flex flex-1 flex-col items-center justify-center gap-2.5 p-5 text-center">
+            <h3 className="m-0 text-lg font-bold text-(--foreground)">No AI-generated missions yet</h3>
+            <p className="m-0 text-sm text-(--muted-foreground)">{loadError || "Try generating this level again."}</p>
+            <button
+              className="h-[38px] cursor-pointer rounded-lg border border-(--border) bg-(--primary) px-4 text-sm font-semibold text-(--primary-foreground) hover:opacity-90"
+              onClick={handleRetryLevel}
+            >
               Retry mission generation
             </button>
           </div>
@@ -374,31 +505,31 @@ export default function GitLearningPage() {
 
       {/* ── Mid-level mission complete (more missions remaining) ── */}
       {mission && missionComplete && !isLevelComplete && (
-        <div className="mission-overlay">
-          <div className="mission-complete-modal">
-            <h2 className="mission-complete-modal__heading">
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/70">
+          <div className="w-[90%] max-w-[400px] rounded-2xl border border-border bg-(--bg-elevated) p-10 text-center">
+            <h2 className="mb-5 text-2xl font-bold text-foreground font-grotesk">
               Mission Complete! 🎉
             </h2>
-            <div className="mission-complete-modal__stats">
-              <div className="mission-complete-modal__stat">
+            <div className="mb-7 flex flex-col gap-2">
+              <div className="font-mono text-sm text-(--text-secondary)">
                 XP Earned: <strong>+{mission.xp} XP</strong>
               </div>
-              <div className="mission-complete-modal__stat">
+              <div className="font-mono text-sm text-(--text-secondary)">
                 Time: <strong>{formatTime(timer)}</strong>
               </div>
-              <div className="mission-complete-modal__stat">
+              <div className="font-mono text-sm text-(--text-secondary)">
                 Steps: <strong>{mission.steps.length} / {mission.steps.length}</strong>
               </div>
             </div>
-            <div className="mission-complete-modal__buttons">
+            <div className="flex gap-3">
               <button
-                className="mission-complete-modal__btn mission-complete-modal__btn--ghost"
+                className="flex-1 rounded-lg border border-border bg-transparent px-4 py-2.5 text-sm font-semibold font-grotesk"
                 onClick={() => navigate(`/modules/${slug}`)}
               >
                 Back to Module
               </button>
               <button
-                className="mission-complete-modal__btn mission-complete-modal__btn--primary"
+                className="flex-1 rounded-lg bg-(--accent) px-4 py-2.5 text-sm font-semibold text-white font-grotesk hover:bg-(--accent-hover)"
                 onClick={() => {
                   const nextIdx = missionIndex + 1
                   setMissionIndex(nextIdx)
