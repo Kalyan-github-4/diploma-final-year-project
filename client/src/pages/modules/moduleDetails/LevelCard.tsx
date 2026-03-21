@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import type { LevelData } from "../git/levels.data"
 import difficultyConfig from "./difficultyConfig"
 import { ChevronRight, Zap } from "lucide-react"
+import { renderGitIcon } from "../git/git-icons"
 
 
 export function LevelCard({
@@ -38,7 +39,7 @@ export function LevelCard({
     >
       {/* Top row */}
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-mono font-semibold text-muted-foreground tracking-widest">
+        <span className="text-[11px] font-mono font-semibold text-(--text-secondary) tracking-widest">
           LEVEL {String(level.id).padStart(2, "0")}
         </span>
         {status === "completed" && (
@@ -54,13 +55,13 @@ export function LevelCard({
       </div>
 
       {/* Icon + title */}
-      <div className="flex items-start gap-3">
-        <span className="text-xl leading-none mt-0.5">{level.icon}</span>
+      <div className="flex items-start gap-5">
+        <span className="mt-0.5 text-(--accent)">{renderGitIcon(level.icon, 18, "text-(--accent)")}</span>
         <div className="min-w-0">
-          <p className="text-sm font-bold font-grotesk text-foreground leading-tight">
+          <p className="text-sm font-medium font-grotesk text-foreground leading-tight">
             {level.title}
           </p>
-          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+          <p className="text-xs text-(--text-secondary) mt-0.5 truncate">
             {level.subtitle}
           </p>
         </div>
@@ -69,7 +70,7 @@ export function LevelCard({
       {/* Footer */}
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-border">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 text-xs text-(--text-secondary)">
             <Zap size={11} className="text-orange-400" />
             +{level.xp} xp
           </span>
@@ -80,7 +81,7 @@ export function LevelCard({
             {diff.label}
           </span>
         </div>
-        {!isLocked && <ChevronRight size={14} className="text-muted-foreground/60" />}
+        {!isLocked && <ChevronRight size={14} className="text-(--text-secondary)/60" />}
       </div>
     </div>
   )

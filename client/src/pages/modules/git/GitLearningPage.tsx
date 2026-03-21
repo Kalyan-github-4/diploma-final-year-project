@@ -436,7 +436,7 @@ export default function GitLearningPage() {
                 <Skeleton className="h-full w-full rounded-none" />
               </div>
             </div>
-            <aside className="flex w-[380px] min-w-[320px] flex-col gap-3 p-[18px]">
+            <aside className="flex w-95 min-w-[320px] flex-col gap-3 p-4.5">
               <Skeleton className="h-6 w-32" />
               <Skeleton className="h-6 w-20" />
               <Skeleton className="h-24 w-full" />
@@ -494,7 +494,7 @@ export default function GitLearningPage() {
             <h3 className="m-0 text-lg font-bold text-(--foreground)">No AI-generated missions yet</h3>
             <p className="m-0 text-sm text-(--muted-foreground)">{loadError || "Try generating this level again."}</p>
             <button
-              className="h-[38px] cursor-pointer rounded-lg border border-(--border) bg-(--primary) px-4 text-sm font-semibold text-(--primary-foreground) hover:opacity-90"
+              className="h-9.5 cursor-pointer rounded-lg border border-(--border) bg-(--primary) px-4 text-sm font-semibold text-(--primary-foreground) hover:opacity-90"
               onClick={handleRetryLevel}
             >
               Retry mission generation
@@ -506,7 +506,7 @@ export default function GitLearningPage() {
       {/* ── Mid-level mission complete (more missions remaining) ── */}
       {mission && missionComplete && !isLevelComplete && (
         <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/70">
-          <div className="w-[90%] max-w-[400px] rounded-2xl border border-border bg-(--bg-elevated) p-10 text-center">
+          <div className="w-[90%] max-w-100 rounded-2xl border border-border bg-(--bg-elevated) p-10 text-center">
             <h2 className="mb-5 text-2xl font-bold text-foreground font-grotesk">
               Mission Complete! 🎉
             </h2>

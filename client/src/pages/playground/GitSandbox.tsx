@@ -5,7 +5,6 @@ import type { TerminalEntry } from "@/pages/modules/git/git-and-gitHub/Terminal"
 import { processCommand } from "@/lib/gitSimulator"
 import type { GitState } from "@/lib/gitSimulator"
 import { RotateCcw, Camera, CheckCheck } from "lucide-react"
-import "./GitSandbox.css"
 
 const EMPTY_STATE: GitState = {
   commits: {},
@@ -115,29 +114,33 @@ export default function GitSandbox() {
   }, [gitState])
 
   return (
-    <div className="git-sandbox">
+    <div className="flex min-h-0 flex-1 flex-col bg-(--bg-elevated,#141414)">
       {/* Toolbar */}
-      <div className="git-sandbox__toolbar">
-        <div className="git-sandbox__toolbar-left">
-          <span className="git-sandbox__repo-indicator">
-            <span className="git-sandbox__repo-dot" />
-            <span className="git-sandbox__repo-path">~/sandbox</span>
+      <div className="flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-border bg-white/2 px-4 py-2.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex items-center gap-2 font-mono text-xs">
+            <span className="size-2 shrink-0 rounded-full bg-(--success,#22C55E)" />
+            <span className="text-(--text-secondary)">~/sandbox</span>
             {gitState.initialized && (
-              <span className="git-sandbox__branch-pill">{currentBranch}</span>
+              <span className="rounded-full border border-[rgba(99,102,241,0.3)] bg-[rgba(99,102,241,0.15)] px-2.5 py-0.5 text-[11px] text-(--accent,#6366F1)">
+                {currentBranch}
+              </span>
             )}
             {!gitState.initialized && (
-              <span className="git-sandbox__hint-pill">run `git init` to start</span>
+              <span className="rounded-full border border-border bg-white/5 px-2.5 py-0.5 text-[11px] text-(--text-tertiary)">
+                run `git init` to start
+              </span>
             )}
           </span>
         </div>
 
-        <div className="git-sandbox__toolbar-right">
+        <div className="flex shrink-0 items-center gap-2">
           {snapshotStatus !== "idle" && (
             <span
-              className={`git-sandbox__feedback ${
+              className={`pr-1 text-xs font-medium ${
                 snapshotStatus === "copied"
-                  ? "git-sandbox__feedback--success"
-                  : "git-sandbox__feedback--error"
+                    ? "text-(--success,#22C55E)"
+                    : "text-(--danger,#EF4444)"
               }`}
             >
               {snapshotStatus === "copied"
@@ -147,7 +150,7 @@ export default function GitSandbox() {
           )}
 
           <button
-            className="git-sandbox__btn git-sandbox__btn--ghost"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--accent,#6366F1) hover:text-foreground"
             onClick={handleSaveSnapshot}
             title="Copy the current repo state as JSON to your clipboard"
           >
@@ -160,7 +163,7 @@ export default function GitSandbox() {
           </button>
 
           <button
-            className="git-sandbox__btn git-sandbox__btn--danger"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-[rgba(239,68,68,0.35)] bg-[rgba(239,68,68,0.08)] px-3 py-1.5 text-xs font-medium text-[#EF4444] transition-colors hover:border-[#EF4444] hover:bg-[rgba(239,68,68,0.18)]"
             onClick={handleReset}
             title="Reset to an empty repository"
           >
@@ -171,11 +174,11 @@ export default function GitSandbox() {
       </div>
 
       {/* Graph + Terminal */}
-      <div className="git-sandbox__workspace">
-        <div className="git-sandbox__graph">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <div className="flex min-h-0 flex-55 overflow-hidden">
           <GitGraph gitState={gitState} newCommitId={newCommitId} />
         </div>
-        <div className="git-sandbox__terminal">
+        <div className="flex min-h-0 flex-45 overflow-hidden">
           <Terminal
             history={terminalHistory}
             currentBranch={currentBranch}

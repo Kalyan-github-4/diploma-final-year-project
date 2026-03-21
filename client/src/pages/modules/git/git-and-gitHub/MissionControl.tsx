@@ -50,7 +50,7 @@ export default function MissionControl({
   const currentHint = steps[currentStep]?.hint || "No hint available."
 
   return (
-    <aside className="flex w-[300px] min-w-[300px] flex-col gap-6 overflow-y-auto border-l border-border bg-(--bg-elevated) p-6">
+    <aside className="flex w-75 min-w-75 flex-col gap-6 overflow-y-auto border-l border-border bg-(--bg-elevated) p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold text-foreground font-grotesk">Mission Control</h2>
