@@ -636,7 +636,7 @@ export default function DSALearningPage() {
 
   if (!activeSteps.length) {
     return (
-      <div className="flex h-full flex-col gap-[14px] p-1 font-sans">
+      <div className="flex h-full flex-col gap-3.5 p-1 font-sans">
         <div className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3">
           <h3 className="font-grotesk">Unable to load algorithm steps</h3>
           <p>Try resetting inputs or switching algorithm.</p>
@@ -661,7 +661,7 @@ export default function DSALearningPage() {
       })()
 
   return (
-    <div className="flex h-full flex-col gap-[14px] p-1 font-sans">
+    <div className="flex h-full flex-col gap-3.5 p-1 font-sans">
       <DSAHeaderControls
         algorithm={algorithm}
         algorithmLabel={algorithmLabel}
@@ -701,7 +701,7 @@ export default function DSALearningPage() {
           />
         </div>
 
-        <aside className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3 [&_h3]:mb-[10px] [&_h3]:text-[15px] [&_h4]:m-0 [&_h4]:text-xs [&_h4]:uppercase [&_h4]:tracking-[0.04em] [&_h4]:text-foreground [&_input]:h-9 [&_input]:rounded-lg [&_input]:border-border [&_input]:bg-background [&_input]:px-2.5 [&_input]:text-[13px] [&_input]:text-foreground [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-(--text-secondary)">
+        <aside className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3 [&_h3]:mb-2.5 [&_h3]:text-[15px] [&_h4]:m-0 [&_h4]:text-xs [&_h4]:uppercase [&_h4]:tracking-[0.04em] [&_h4]:text-foreground [&_input]:h-9 [&_input]:rounded-lg [&_input]:border-border [&_input]:bg-background [&_input]:px-2.5 [&_input]:text-[13px] [&_input]:text-foreground [&_p]:m-0 [&_p]:text-[13px] [&_p]:text-(--text-secondary)">
           {playback.mode === "build" ? (
             <DSABuildPanel
               algorithmLabel={algorithmLabel}

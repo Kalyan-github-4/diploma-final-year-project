@@ -27,8 +27,8 @@ export function DSAVisualizer({
     <div
       className={`relative flex min-h-0 items-center justify-center rounded-xl border border-(--card-border) bg-card p-3 ${predictOverlayResult === "correct" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--success)_42%,transparent)]" : ""} ${predictOverlayResult === "wrong" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--danger)_42%,transparent)]" : ""}`}
     >
-      <div className={`w-full ${isBinaryMode ? "flex min-h-full flex-col items-center justify-center gap-[14px]" : ""}`}>
-        <div className={`${isBinaryMode ? "flex w-max max-w-full items-start justify-center gap-[14px] overflow-x-auto px-2 py-1" : "grid w-full grid-cols-7 gap-2"}`}>
+      <div className={`w-full ${isBinaryMode ? "flex min-h-full flex-col items-center justify-center gap-3.5" : ""}`}>
+        <div className={`${isBinaryMode ? "flex w-max max-w-full items-start justify-center gap-3.5 overflow-x-auto px-2 py-1" : "grid w-full grid-cols-7 gap-2"}`}>
           {currentStep.snapshot.array.map((value, index) => {
             const binarySnapshot = currentStep.snapshot as BinarySearchSnapshot
             const bubbleSnapshot = currentStep.snapshot as BubbleSortSnapshot
@@ -50,7 +50,7 @@ export function DSAVisualizer({
                 initial={{ opacity: 0.95, y: 6 }}
                 animate={{ opacity: 1, y: 0, scale: isSwap ? 1.04 : 1 }}
                 transition={{ duration: 0.2 }}
-                className={`${isBinaryMode ? "flex min-w-0 flex-col items-center gap-[7px]" : "min-w-0"}`}
+                className={`${isBinaryMode ? "flex min-w-0 flex-col items-center gap-1.75" : "min-w-0"}`}
               >
                 {isBinaryMode && <span className="text-[11px] leading-none text-(--text-secondary)">index {index}</span>}
 
@@ -80,21 +80,21 @@ export function DSAVisualizer({
                 </div>
 
                 {isBinaryMode && (
-                  <div className="flex min-h-[22px] flex-wrap items-center justify-center gap-1">
+                  <div className="flex min-h-5.5 flex-wrap items-center justify-center gap-1">
                     {isLow && (
-                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-[7px] py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
+                      <span className="inline-flex items-center gap-0.75 rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-1.75 py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
                         <span aria-hidden="true">↑</span>
                         low
                       </span>
                     )}
                     {isMid && (
-                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-[7px] py-1 text-[10px] font-semibold leading-none text-foreground">
+                      <span className="inline-flex items-center gap-0.75 rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-1.75 py-1 text-[10px] font-semibold leading-none text-foreground">
                         <span aria-hidden="true">↑</span>
                         mid
                       </span>
                     )}
                     {isHigh && (
-                      <span className="inline-flex items-center gap-[3px] rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-[7px] py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
+                      <span className="inline-flex items-center gap-0.75 rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-1.75 py-1 text-[10px] font-semibold leading-none text-(--text-secondary)">
                         <span aria-hidden="true">↑</span>
                         high
                       </span>
@@ -108,16 +108,16 @@ export function DSAVisualizer({
 
         {isBinaryMode && (
           <div className="flex w-full flex-wrap items-center justify-center gap-1.5" aria-label="Binary Search state legend">
-            <span className="rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-2.5 py-[5px] text-[11px] leading-none text-foreground">Current Pivot</span>
-            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-[5px] text-[11px] leading-none text-(--text-secondary)">Unvisited</span>
-            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-[5px] text-[11px] leading-none text-(--text-secondary) opacity-65">Excluded</span>
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--accent)_50%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_26%,var(--bg-surface))] px-2.5 py-1.25 text-[11px] leading-none text-foreground">Current Pivot</span>
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-1.25 text-[11px] leading-none text-(--text-secondary)">Unvisited</span>
+            <span className="rounded-full border border-[color-mix(in_oklab,var(--border-subtle)_72%,transparent)] bg-(--bg-elevated) px-2.5 py-1.25 text-[11px] leading-none text-(--text-secondary) opacity-65">Excluded</span>
           </div>
         )}
 
         <AnimatePresence>
           {isPredictOverlayVisible && activePredictQuestion && (
             <motion.div
-              className="absolute top-1/2 left-1/2 z-5 flex w-[min(560px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-2.5 rounded-[14px] border border-border bg-[color-mix(in_oklab,var(--bg-elevated)_92%,black_8%)] p-[14px] shadow-[0_24px_50px_rgba(0,0,0,0.35)] backdrop-blur-xs"
+              className="absolute top-1/2 left-1/2 z-5 flex w-[min(560px,calc(100%-32px))] -translate-x-1/2 -translate-y-1/2 flex-col gap-2.5 rounded-[14px] border border-border bg-[color-mix(in_oklab,var(--bg-elevated)_92%,black_8%)] p-3.5 shadow-[0_24px_50px_rgba(0,0,0,0.35)] backdrop-blur-xs"
               initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 8, scale: 0.98 }}

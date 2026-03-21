@@ -14,6 +14,25 @@ export interface MissionGraphState {
   commits: Record<string, { message: string; parent: string | null }>
   branches: Record<string, string>
   HEAD: { type: "branch" | "detached"; ref: string }
+  remotes?: Record<string, string>
+  upstreams?: Record<string, string>
+  pullRequests?: Array<{
+    id: number
+    title: string
+    fromBranch: string
+    toBranch: string
+    status: "open" | "closed" | "merged"
+    checks: "pending" | "passed" | "failed"
+    reviewStatus: "pending" | "changes-requested" | "approved"
+    mergeStrategy?: "merge" | "squash" | "rebase"
+  }>
+  nextPullRequestId?: number
+  conflictRules?: Array<{
+    sourceBranch: string
+    targetBranch: string
+    files: string[]
+    message?: string
+  }>
 }
 
 export interface Mission {

@@ -131,7 +131,7 @@ export function DSAReferenceCode({
         </div>
         <h3 className="ml-2 m-0 font-mono text-xs font-medium text-(--text-tertiary)">{isBuildMode ? "Pseudo Code Runner" : "Reference Code"}</h3>
         {isBuildMode && (
-          <Button className="ml-auto h-[30px] rounded-lg px-2.5" onClick={onRunCode} disabled={runDisabled}>
+          <Button className="ml-auto h-7.5 rounded-lg px-2.5" onClick={onRunCode} disabled={runDisabled}>
             Run Code
           </Button>
         )}
@@ -139,7 +139,7 @@ export function DSAReferenceCode({
 
       <div
         ref={isBuildMode ? hostRef : undefined}
-        className={`flex-1 min-h-0 overflow-auto px-3 py-[14px] ${isBuildMode ? "min-h-55 p-0" : ""}`}
+        className={`flex-1 min-h-0 overflow-auto px-3 py-3.5 ${isBuildMode ? "min-h-55 p-0" : ""}`}
       >
         {!isBuildMode && (
           <div className="flex min-h-full flex-col gap-1">
@@ -149,7 +149,7 @@ export function DSAReferenceCode({
               return (
                 <div
                   key={`${line}-${index}`}
-                  className={`grid grid-cols-[30px_1fr] gap-2.5 rounded-lg px-2 py-[5px] font-mono text-xs leading-[1.55] text-foreground ${active ? "bg-[color-mix(in_oklab,var(--accent)_16%,var(--terminal-bg,#0A0A0A))] shadow-[inset_2px_0_0_0_var(--accent)]" : ""}`}
+                  className={`grid grid-cols-[30px_1fr] gap-2.5 rounded-lg px-2 py-1.25 font-mono text-xs leading-[1.55] text-foreground ${active ? "bg-[color-mix(in_oklab,var(--accent)_16%,var(--terminal-bg,#0A0A0A))] shadow-[inset_2px_0_0_0_var(--accent)]" : ""}`}
                 >
                   <span className="select-none text-right text-(--text-secondary)">{lineNumber}</span>
                   <span>{line}</span>

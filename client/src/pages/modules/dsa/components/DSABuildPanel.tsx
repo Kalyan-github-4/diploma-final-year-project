@@ -30,17 +30,17 @@ export function DSABuildPanel({
       <h3 className="font-grotesk">Code Mode</h3>
       <p className="my-0 mt-1 mb-2 text-xs text-(--text-secondary)">Write pseudocode, run safely, and watch the visualizer replay your execution.</p>
 
-      <div className="mt-[14px] flex flex-col gap-1.5">
+      <div className="mt-3.5 flex flex-col gap-1.5">
         <h4 className="font-grotesk">Question</h4>
         <p>{algorithmLabel}</p>
         <p>{question}</p>
       </div>
 
-      <div className="mt-[14px] flex flex-col gap-1.5">
+      <div className="mt-3.5 flex flex-col gap-1.5">
         <h4 className="font-grotesk">Realtime Progress</h4>
         <div className="mt-1.5 flex items-center gap-3">
-          <div className="flex h-[82px] w-[82px] shrink-0 items-center justify-center rounded-full" style={ringStyle}>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card text-[13px] font-bold text-[var(--text-primary)]">{Math.round(progressPercent)}%</div>
+          <div className="flex h-20.5 w-20.5 shrink-0 items-center justify-center rounded-full" style={ringStyle}>
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-card text-[13px] font-bold text-foreground">{Math.round(progressPercent)}%</div>
           </div>
           <div className="flex flex-col gap-1">
             <p>{executionState}</p>

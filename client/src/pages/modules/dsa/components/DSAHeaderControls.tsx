@@ -117,23 +117,23 @@ export function DSAHeaderControls({
           </Select>
         </div>
 
-        <Button className="h-[34px] rounded-lg" onClick={onReplay}>
+        <Button className="h-8.5 rounded-lg" onClick={onReplay}>
           <RotateCcw className="size-4" aria-hidden="true" />
           Reset
         </Button>
-        <Button className="h-[34px] rounded-lg" onClick={onBack}>
+        <Button className="h-8.5 rounded-lg" onClick={onBack}>
           <SkipBack className="size-4" aria-hidden="true" />
           Back
         </Button>
-        <Button className="h-[34px] rounded-lg" onClick={onTogglePlay} disabled={playback.mode === "predict"}>
+        <Button className="h-8.5 rounded-lg" onClick={onTogglePlay} disabled={playback.mode === "predict"}>
           {playback.isPlaying ? <Pause className="size-4" aria-hidden="true" /> : <Play className="size-4" aria-hidden="true" />}
           {playback.isPlaying ? "Pause" : "Play"}
         </Button>
-        <Button className="h-[34px] rounded-lg" onClick={onNext} disabled={!isQuestionAnswered}>
+        <Button className="h-8.5 rounded-lg" onClick={onNext} disabled={!isQuestionAnswered}>
           <SkipForward className="size-4" aria-hidden="true" />
           Next
         </Button>
-        <Button className="h-[34px] rounded-lg" onClick={onEnd}>
+        <Button className="h-8.5 rounded-lg" onClick={onEnd}>
           <ChevronsRight className="size-4" aria-hidden="true" />
           End
         </Button>
