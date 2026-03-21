@@ -1,10 +1,6 @@
 const { sql } = require("drizzle-orm")
 const { getDb } = require("./client")
 
-const fs = require('fs')
-const path = require('path')
-const { curatedMissions } = require('./schema')
-
 async function ensureDatabaseSchema() {
   const { db } = getDb()
 

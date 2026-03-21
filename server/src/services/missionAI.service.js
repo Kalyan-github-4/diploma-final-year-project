@@ -5,7 +5,6 @@ import { db } from "../db/index.js"
 import { 
   aiMissions, 
   commandStats, 
-  userProgress,
   users
 } from "../db/schema.js"
 import { eq, and } from "drizzle-orm"
@@ -66,7 +65,7 @@ async function getUserContext(userId, topicId) {
 }
 
 // ─── 2. CALCULATE DIFFICULTY ─────────────
-function calculateDifficulty(sessionNumber, level) {
+function calculateDifficulty(sessionNumber) {
   if (sessionNumber <= 2) return "easy"
   if (sessionNumber <= 4) return "medium"
   return "hard"

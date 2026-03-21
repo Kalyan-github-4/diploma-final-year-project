@@ -295,14 +295,14 @@ function parseJsonFromText(text) {
   }
 }
 
-async function tryGeminiMissionBatch({ userId, level, topic, difficulties, generationNonce, previousMissions }) {
-  if (!env.geminiApiKey) return null
-  const levelProfile = getLevelProfile(level)
+async function tryOpenAIMissionBatch({ userId, level, topic, difficulties, generationNonce, previousMissions }) {
+  if (!env.openAiApiKey) return null;
+  const levelProfile = getLevelProfile(level);
 
   const previousMissionHints = (previousMissions || []).slice(-5).map((mission) => ({
     title: mission?.title,
     firstStep: mission?.steps?.[0]?.instruction,
-  }))
+  }));
 
   const schemaHint = {
     missions: [
@@ -330,10 +330,10 @@ async function tryGeminiMissionBatch({ userId, level, topic, difficulties, gener
         },
       },
     ],
-  }
+  };
 
   const systemPrompt =
-    "Generate Git practice missions as strict JSON only (no prose). Ensure missions are level-specific, sorted easiest to hardest by provided difficulty values, and each mission includes commands aligned to levelProfile.requiredCommands. Do not repeat previous mission titles or same first-step pattern."
+    "Generate Git practice missions as strict JSON only (no prose). Ensure missions are level-specific, sorted easiest to hardest by provided difficulty values, and each mission includes commands aligned to levelProfile.requiredCommands. Do not repeat previous mission titles or same first-step pattern. Output must be valid JSON matching this schema: " + JSON.stringify(schemaHint);
 
   const requestPayload = {
     userId,
@@ -349,50 +349,44 @@ async function tryGeminiMissionBatch({ userId, level, topic, difficulties, gener
       newScenarioContextPerMission: true,
     },
     outputSchema: schemaHint,
-  }
+  };
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(env.geminiModel || "gemini-1.5-flash")}:generateContent?key=${encodeURIComponent(env.geminiApiKey)}`, {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${env.openAiApiKey}`,
     },
     body: JSON.stringify({
-      systemInstruction: {
-        parts: [{ text: systemPrompt }],
-      },
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: JSON.stringify(requestPayload) }],
-        },
+      model: env.openAiModel || "gpt-4.1-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: JSON.stringify(requestPayload) },
       ],
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
+      temperature: 0.2,
+      response_format: { type: "json_object" },
     }),
-  })
+  });
 
-  if (!response.ok) return null
+  if (!response.ok) return null;
 
-  const data = await response.json()
-  const raw = data?.candidates?.[0]?.content?.parts
-    ?.map((part) => part?.text || "")
-    .join("\n")
-  if (!raw) return null
+  const data = await response.json();
+  let parsed = null;
+  if (data.choices && data.choices[0]?.message?.content) {
+    parsed = parseJsonFromText(data.choices[0].message.content);
+  }
+  if (!parsed) return null;
 
-  const parsed = parseJsonFromText(raw)
-  if (!parsed) return null
+  const missions = Array.isArray(parsed?.missions) ? parsed.missions : null;
+  if (!missions || missions.length === 0) return null;
 
-  const missions = Array.isArray(parsed?.missions) ? parsed.missions : null
-  if (!missions || missions.length === 0) return null
-
-  return missions
+  return missions;
 }
 
 async function generateMissionSet({ userId, level, topic, generationNonce, previousMissions }) {
   const difficulties = levelToDifficultyBand(level)
   const levelProfile = getLevelProfile(level)
-  const aiMissions = await tryGeminiMissionBatch({
+  const aiMissions = await tryOpenAIMissionBatch({
     userId,
     level,
     topic,
