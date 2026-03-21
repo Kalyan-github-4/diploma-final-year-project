@@ -65,7 +65,7 @@ export default function ActivityFeed({ items }: ActivityFeedProps) {
   return (
     <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
       <div className="mb-3.5 flex items-center justify-between">
-        <h2 className="font-['Space_Grotesk',sans-serif] text-[18px] font-bold text-foreground">
+        <h2 className="font-grotesk text-[18px] font-bold text-foreground">
           Recent Activity Feed
         </h2>
       </div>
@@ -73,7 +73,7 @@ export default function ActivityFeed({ items }: ActivityFeedProps) {
       <div>
         {Object.entries(grouped).map(([group, list], index) => (
           <div key={group} className={index > 0 ? "mt-3.5" : undefined}>
-            <h3 className="mb-2.5 font-['Space_Grotesk',sans-serif] text-[14px] font-semibold text-foreground">
+            <h3 className="mb-2.5 font-grotesk text-[14px] font-semibold text-foreground">
               {group}
             </h3>
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
@@ -96,7 +96,7 @@ export default function ActivityFeed({ items }: ActivityFeedProps) {
                         })}
                       </p>
                     </div>
-                    <span className="font-['Space_Grotesk',sans-serif] text-[12px] font-bold text-(--accent,#6366f1)">
+                    <span className="font-grotesk text-[12px] font-bold text-(--accent,#6366f1)">
                       +{item.xp} XP
                     </span>
                   </li>

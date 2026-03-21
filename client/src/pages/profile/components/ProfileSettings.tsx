@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input"
 import { ThemeToggle } from "@/components/theme-toggle"
 import DangerZone from "./DangerZone"
 import ChangePasswordModal from "./ChangePasswordModal"
+import { Button } from "@/components/ui/button"
 
 interface ProfileSettingsProps {
   name: string
@@ -28,11 +29,6 @@ export default function ProfileSettings({
   onAvatarPreset,
 }: ProfileSettingsProps) {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
-  const [editorFont, setEditorFont] = useState("JetBrains Mono")
-  const [missionReminders, setMissionReminders] = useState(true)
-  const [streakAlerts, setStreakAlerts] = useState(true)
-  const [newModuleAlerts, setNewModuleAlerts] = useState(false)
-
   return (
     <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
       <div className="mb-3.5 flex items-center justify-between">
@@ -43,9 +39,12 @@ export default function ProfileSettings({
 
       <div className="grid grid-cols-2 gap-3 max-[720px]:grid-cols-1">
         <article className="flex flex-col gap-2.5 rounded-[10px] border border-border p-3">
-          <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
-            Account Settings
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
+              Account Settings
+            </h3>
+            <ThemeToggle />
+          </div>
 
           <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
             <span>Name</span>
@@ -58,88 +57,79 @@ export default function ProfileSettings({
           </label>
 
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
               className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
             >
               Send verification email
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
               onClick={() => setChangePasswordOpen(true)}
             >
               Change Password
-            </button>
+            </Button>
           </div>
 
           <div className="flex flex-col gap-2">
             <span>Avatar presets</span>
             <div className="flex gap-2">
               {AVATAR_PRESETS.map((preset) => (
-                <button
+                <div
                   key={preset}
-                  type="button"
-                  className={`h-11 w-11 cursor-pointer overflow-hidden rounded-[9999px] border ${avatarUrl === preset ? "border-(--accent,#6366f1)" : "border-border"}`}
+                  className={`h-11 w-11 cursor-pointer overflow-hidden rounded-[9999px] border-2 ${avatarUrl === preset ? "border-(--accent)" : "border-border"}`}
                   onClick={() => onAvatarPreset(preset)}
                 >
                   <img src={preset} alt="avatar preset" className="h-full w-full" />
-                </button>
+                </div>
               ))}
             </div>
           </div>
         </article>
 
-        <article className="flex flex-col gap-2.5 rounded-[10px] border border-border p-3">
-          <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
-            Preferences
-          </h3>
+        <article className="flex flex-col gap-4 rounded-[10px] border border-border p-4">
+  <h3 className="font-gortesk text-[14px] font-semibold text-foreground">
+    Profile Overview
+  </h3>
 
-          <div className="flex items-center justify-between">
-            <span>Theme</span>
-            <ThemeToggle />
-          </div>
+  {/* Avatar + Name */}
+  <div className="flex items-center gap-3">
+    <div className="h-14 w-14 overflow-hidden rounded-full border border-border">
+      <img src={avatarUrl} alt="avatar" className="h-full w-full" />
+    </div>
 
-          <label className="flex flex-col gap-1.5 text-[12px] text-(--text-secondary)">
-            <span>Editor font</span>
-            <select
-              value={editorFont}
-              onChange={(e) => setEditorFont(e.target.value)}
-              className="h-8.5 w-full rounded-lg border border-border bg-transparent px-2.5 text-foreground"
-            >
-              <option>JetBrains Mono</option>
-              <option>Fira Code</option>
-              <option>Cascadia Code</option>
-            </select>
-          </label>
+    <div className="flex flex-col">
+      <span className="text-[14px] font-semibold text-foreground">
+        {name}
+      </span>
+      <span className="text-[12px] text-(--text-secondary)">
+        {email}
+      </span>
+    </div>
+  </div>
 
-          <div className="flex flex-col gap-1.5">
-            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
-              <input
-                type="checkbox"
-                checked={missionReminders}
-                onChange={(e) => setMissionReminders(e.target.checked)}
-              />
-              Mission reminders
-            </label>
-            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
-              <input
-                type="checkbox"
-                checked={streakAlerts}
-                onChange={(e) => setStreakAlerts(e.target.checked)}
-              />
-              Streak alerts
-            </label>
-            <label className="inline-flex items-center gap-2 text-[13px] text-(--text-secondary)">
-              <input
-                type="checkbox"
-                checked={newModuleAlerts}
-                onChange={(e) => setNewModuleAlerts(e.target.checked)}
-              />
-              New module alerts
-            </label>
-          </div>
-        </article>
+  {/* Divider */}
+  <div className="h-px bg-border" />
+
+  {/* Stats */}
+  <div className="grid grid-cols-2 gap-3">
+    <div className="flex flex-col">
+      <span className="text-[11px] text-muted-foreground">Streak</span>
+      <span className="text-[16px] font-semibold">5 🔥</span>
+    </div>
+
+    <div className="flex flex-col">
+      <span className="text-[11px] text-muted-foreground">Missions</span>
+      <span className="text-[16px] font-semibold">12</span>
+    </div>
+  </div>
+
+  {/* Small motivation text */}
+  <div className="rounded-md bg-muted/30 p-2 text-[12px] text-(--text-secondary)">
+    Keep going. You're building consistency 🚀
+  </div>
+</article>
       </div>
 
       <DangerZone />

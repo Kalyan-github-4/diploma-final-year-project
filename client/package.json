@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/react": "^6.1.2",
     "@codemirror/lang-css": "^6.3.1",
     "@fontsource-variable/geist": "^5.2.8",
     "@heroui/drawer": "^2.2.29",

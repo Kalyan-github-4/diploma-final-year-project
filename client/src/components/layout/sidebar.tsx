@@ -173,8 +173,8 @@ export default function Sidebar() {
                 }
               ${collapsed ? "flex justify-center px-0 py-2" : "flex items-center gap-3 px-2 py-2"}`}
             >
-              <div className="w-9 h-9 shrink-0 rounded-full bg-linear-to-br from-gray-400 to-gray-500 text-white flex items-center justify-center font-semibold">
-                K
+              <div className="w-9 h-9 shrink-0 rounded-full overflow-hidden border border-border">
+                <img src="https://api.dicebear.com/9.x/shapes/svg?seed=Kalyan" alt="avatar" className="h-full w-full"/>
               </div>
 
               <AnimatePresence>
@@ -187,7 +187,7 @@ export default function Sidebar() {
                     className="leading-tight min-w-0"
                   >
                     <div className="text-sm font-medium text-foreground font-grotesk">Kalyan</div>
-                    <div className="text-xs text-(--text-secondary)">Student</div>
+                    <div className="text-xs text-(--text-secondary)">Mid developer</div>
                   </motion.div>
                 )}
               </AnimatePresence>
