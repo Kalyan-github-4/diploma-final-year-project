@@ -24,17 +24,17 @@ export const modules: ModuleCardProps[] = [
     link: "/modules/git"
   },
   {
-    title: "Layout Engineering",
+    title: "CSS Layout",
     description:
-      "Master Flexbox, CSS Grid, and advanced layouts with real-world challenges. 3 progressive paths with 18 interactive missions.",
-    progress: 33,
-    topics: 18,
-    xp: 2700,
+      "Master Flexbox and Grid by visualizing real-time layout changes as you code. 12 interactive challenges.",
+    progress: 0,
+    topics: 12,
+    xp: 1230,
     level: "INTERMEDIATE",
     status: "not-started",
     icon: <LayoutGrid size={22} />,
     color: "#06B6D4",
-    link: "/modules/layout-engineering"
+    link: "/modules/css-layout"
   },
   {
     title: "Data Structures & Algos",

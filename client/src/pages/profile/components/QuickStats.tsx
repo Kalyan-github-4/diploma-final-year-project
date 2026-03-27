@@ -1,17 +1,41 @@
-import { Flame, Target, Trophy, Sparkles } from "lucide-react"
+import {
+  Flame,
+  Target,
+  Trophy,
+  Sparkles,
+  Lightbulb,
+  Flag,
+  Star,
+  Crown,
+  TrendingUp
+} from "lucide-react"
 
 export interface QuickStat {
   id: string
   value: string
   label: string
-  icon?: "flame" | "target" | "trophy" | "sparkles"
+  icon?: 
+  | "flame"
+  | "target"
+  | "trophy"
+  | "sparkles"
+  | "lightbulb"
+  | "flag"
+  | "star"
+  | "crown"
+  | "trendingUp"
 }
 
 const ICON_MAP = {
   flame: Flame,
+  trendingUp: TrendingUp,
   target: Target,
   trophy: Trophy,
   sparkles: Sparkles,
+  lightbulb: Lightbulb,
+  flag: Flag,
+  star: Star,
+  crown: Crown,
 }
 
 interface QuickStatsProps {

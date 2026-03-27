@@ -1,6 +1,8 @@
 import { useRef } from "react"
 import { Camera } from "lucide-react"
 import EditProfileModal from "./EditProfileModal"
+import { Button } from "@/components/ui/button"
+import { Pencil, X } from "lucide-react"
 
 interface ProfileState {
   avatarUrl: string
@@ -37,13 +39,13 @@ export default function ProfileHeader({
   return (
     <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
       <div className="flex justify-end">
-        <button
+        <Button
           type="button"
-          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary)"
+          className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border bg-transparent px-3 py-2 text-[13px] font-semibold text-(--text-secondary) hover:text-white transition-colors"
           onClick={onToggleEdit}
         >
-          {isEditing ? "Close Edit" : "Edit Profile"}
-        </button>
+          {isEditing ? <X /> : <Pencil />}
+        </Button>
       </div>
 
       <div className="flex items-center gap-4.5 max-[720px]:flex-col max-[720px]:items-start">

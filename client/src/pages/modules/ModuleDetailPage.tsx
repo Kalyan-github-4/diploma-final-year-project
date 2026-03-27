@@ -51,7 +51,7 @@ const ModuleDetailPage = () => {
 
     const load = async () => {
       try {
-        const res = await fetch(`/api/modules/${slug}`, { signal: ctrl.signal })
+        const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/modules/${slug}`, { signal: ctrl.signal })
         if (!res.ok) {
           if (res.status !== 404) {
             resolved = true

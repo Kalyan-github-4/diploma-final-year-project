@@ -21,14 +21,14 @@ async function seedModules() {
         orderIndex: 1,
       },
       {
-        slug: "layout-engineering",
-        title: "Layout Engineering",
+        slug: "css-layout",
+        title: "CSS Layout",
         description:
-          "Master Flexbox, Grid and modern responsive UI architecture.",
+          "Master Flexbox and Grid by visualizing real-time layout changes as you code.",
         category: "frontend",
         difficulty: "intermediate",
-        topicsCount: 18,
-        totalXp: 2700,
+        topicsCount: 12,
+        totalXp: 1230,
         icon: "layoutGrid",
         themeColor: "#06B6D4",
         orderIndex: 2,
@@ -59,20 +59,7 @@ async function seedModules() {
         themeColor: "#8B5CF6",
         orderIndex: 4,
       },
-      {
-        slug: "js-debugging",
-        title: "JavaScript Debugging",
-        description:
-          "Learn advanced debugging strategies and memory issue tracking.",
-        category: "programming",
-        difficulty: "advanced",
-        topicsCount: 10,
-        totalXp: 1500,
-        icon: "bug",
-        themeColor: "#64748B",
-        orderIndex: 5,
-      },
-    ])
+    ]).onConflictDoNothing()
 
     console.log("✅ Modules seeded successfully")
     process.exit()

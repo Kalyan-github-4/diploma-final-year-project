@@ -19,14 +19,14 @@ interface ProfileState {
 }
 
 const QUICK_STATS: QuickStat[] = [
-  { id: "xp", value: "18,420", label: "Total XP earned" },
-  { id: "lvl", value: "24", label: "Current Level" },
-  { id: "topics", value: "37", label: "Topics completed" },
+  { id: "xp", value: "18,420", label: "Total XP earned", icon: "sparkles" },
+  { id: "lvl", value: "24", label: "Current Level", icon: "trendingUp" },
+  { id: "topics", value: "37", label: "Topics completed", icon: "target" },
   { id: "challenges", value: "129", label: "Challenges solved", icon: "target" },
   { id: "streak", value: "14 🔥", label: "Current streak", icon: "flame" },
   { id: "perfect", value: "22", label: "Perfect scores", icon: "trophy" },
-  { id: "hints", value: "48", label: "Total hints used" },
-  { id: "missions", value: "64", label: "Missions completed", icon: "sparkles" },
+  { id: "hints", value: "48", label: "Total hints used", icon: "sparkles" },
+  { id: "missions", value: "64", label: "Missions completed", icon: "target" },
 ]
 
 const SKILLS = [

@@ -13,7 +13,7 @@ const DashboardModuleCard = () => {
     useEffect(() => {
         const loadModules = async () => {
             try {
-                const res = await fetch("/api/modules")
+                const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/modules`)
                 const data = await res.json()
                 setModules(data.slice(0, 3)) // Update with real data, still showing only first 3
 

@@ -6,7 +6,6 @@ import ModulesPage from "./pages/modules/ModulesPage"
 import ModuleDetailPage from "./pages/modules/ModuleDetailPage"
 import LevelPage from "./pages/modules/LevelPage"
 import ModuleCompletionPage from "./pages/modules/git/ModuleCompletionPage"
-import LayoutEngineeringPage from "./pages/modules/layout-engineering/LayoutEngineeringPage"
 import Playground from "./pages/playground/PlaygroundPage"
 import ProfilePage from "./pages/profile/ProfilePage"
 import Progress from "./pages/progress/ProgressPage"
@@ -23,9 +22,6 @@ export const router = createBrowserRouter([
 
       // ⭐ modules catalog
       { path: "modules", element: <ModulesPage /> },
-
-      // ⭐ dedicated full-screen module experiences
-      { path: "modules/layout-engineering", element: <LayoutEngineeringPage /> },
 
       // ⭐ module level map
       { path: "modules/:slug", element: <ModuleDetailPage /> },
