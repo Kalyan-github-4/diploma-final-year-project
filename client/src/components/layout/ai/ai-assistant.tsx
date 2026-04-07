@@ -1,166 +1,220 @@
-import { useEffect, useRef, useState } from "react"
-import { Bot, SendHorizontal } from "lucide-react"
-import { Drawer } from "@/components/ui/drawer"
+import { useRef, useState } from "react"
+import { Sparkles } from "lucide-react"
+import { ChatHeader } from "./ChatHeader"
+import { ChatInput } from "./ChatInput"
+import { MessageList, type Message } from "./MessageList"
 
-type AIAssistantProp = {
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const API_BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000"
+const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || "qwen2.5:7b"
+
+const GREETINGS = [
+  "Hey! Ask me anything and I'll help you out.",
+  "Ready to chat? Drop your question below.",
+  "Hello! I can explain concepts, review code, or just chat. What's up?",
+  "Hi there! Ask me anything.",
+]
+
+let _counter = 0
+const makeId = () => `msg-${Date.now()}-${++_counter}`
+const randomGreeting = () => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+interface AIAssistantProps {
   module?: string
   topic?: string
 }
 
-const API_BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000"
-
-const greetings = [
-  "Hey coder 👋 Need help with this mission?",
-  "Hi there 🚀 Ready to conquer Git today?",
-  "Hello 👨‍💻 Stuck somewhere? I can help.",
-  "Yo developer 😄 Want a quick hint?",
-  "Welcome back 🔥 Let's complete this challenge."
-]
-
-export default function AIAssistant({ module, topic }: AIAssistantProp) {
+export default function AIAssistant({ module = "git", topic = "general" }: AIAssistantProps) {
   const [open, setOpen] = useState(false)
-  const [bubbleGreeting] = useState(
-    () => greetings[Math.floor(Math.random() * greetings.length)]
-  )
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const sendingRef = useRef(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const greetingRef = useRef(randomGreeting())
+  const abortRef = useRef<AbortController | null>(null)
+
+  // ── Open / close ─────────────────────────────────────────────────────────────
 
   const openChat = () => {
     setOpen(true)
-    setMessages(prev =>
-      prev.length === 0 ? [{ role: "bot", text: bubbleGreeting }] : prev
-    )
+    if (messages.length === 0) {
+      setMessages([{ id: makeId(), role: "bot", text: greetingRef.current, timestamp: new Date() }])
+    }
+    setTimeout(() => textareaRef.current?.focus(), 120)
   }
 
-  const sendMessage = async () => {
-    if (!open) return
-    if (!input.trim()) return
-    if (sendingRef.current) return
-    sendingRef.current = true
-    const userText = input.trim()
+  const closeChat = () => {
+    setOpen(false)
+    abortRef.current?.abort()
+  }
 
-    const userMessage = { role: "user", text: userText }
-    setInput("")
-    const thinkingMsg = { role: "bot", text: "Thinking... 🤖" }
-    setMessages(prev => [...prev, userMessage, thinkingMsg])
+  const clearChat = () => {
+    abortRef.current?.abort()
+    setIsLoading(false)
+    setMessages([{ id: makeId(), role: "bot", text: greetingRef.current, timestamp: new Date() }])
+  }
 
-    try {
-      const response = await fetch(`${API_BASE}/api/ai/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userText,
-          module: module || "git",
-          topic: topic || "branching"
-        })
-      })
+  // ── Input handlers ────────────────────────────────────────────────────────────
 
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => null)
-        throw new Error(errorPayload?.message || errorPayload?.error || `AI request failed (${response.status})`)
-      }
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    e.target.style.height = "auto"
+    e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px"
+  }
 
-      const data = await response.json()
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { role: "bot", text: data.reply }
-      ])
-    } catch (error) {
-      console.error("AI API error:", error)
-      setMessages(prev => [
-        ...prev.slice(0, -1),
-        { role: "bot", text: error instanceof Error ? error.message : "AI server error 😢" }
-      ])
-    } finally {
-      sendingRef.current = false
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      void sendMessage()
     }
   }
 
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  // ── Send (streaming) ──────────────────────────────────────────────────────────
+
+  const sendMessage = async () => {
+    const text = input.trim()
+    if (!text || isLoading) return
+
+    const history = messages.filter((m) => !m.isError && m.text !== greetingRef.current)
+
+    setMessages((prev) => [...prev, { id: makeId(), role: "user", text, timestamp: new Date() }])
+    setInput("")
+    if (textareaRef.current) textareaRef.current.style.height = "auto"
+    setIsLoading(true)
+
+    const botMsgId = makeId()
+    setMessages((prev) => [
+      ...prev,
+      { id: botMsgId, role: "bot", text: "", timestamp: new Date(), isStreaming: true },
+    ])
+
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/chat/stream`, {
+        method: "POST",
+        signal: ctrl.signal,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, module, topic, history }),
+      })
+
+      if (!res.ok || !res.body) {
+        const payload = await res.json().catch(() => null)
+        throw new Error(payload?.message || `Request failed (${res.status})`)
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buf = ""
+      let streamDone = false
+
+      while (!streamDone) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buf += decoder.decode(value, { stream: true })
+        const lines = buf.split("\n")
+        buf = lines.pop() ?? ""
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue
+          const data = line.slice(6)
+
+          if (data === "[DONE]") { streamDone = true; break }
+
+          try {
+            const chunk = JSON.parse(data)
+            if (chunk.error) throw new Error(chunk.error)
+            if (chunk.token) {
+              setMessages((prev) =>
+                prev.map((m) => m.id === botMsgId ? { ...m, text: m.text + chunk.token } : m)
+              )
+            }
+          } catch (e) {
+            if (e instanceof Error && e.message !== "JSON parse error") throw e
+          }
+        }
+      }
+
+      setMessages((prev) =>
+        prev.map((m) => m.id === botMsgId ? { ...m, isStreaming: false } : m)
+      )
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        // Keep any partial text; just stop the streaming cursor
+        setMessages((prev) =>
+          prev.map((m) => m.id === botMsgId ? { ...m, isStreaming: false } : m)
+            .filter((m) => m.id !== botMsgId || m.text.length > 0)
+        )
+      } else {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === botMsgId
+              ? { ...m, text: err instanceof Error ? err.message : "Something went wrong.", isError: true, isStreaming: false }
+              : m
+          )
+        )
+      }
+    } finally {
+      setIsLoading(false)
+      abortRef.current = null
+      setTimeout(() => textareaRef.current?.focus(), 50)
+    }
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────────
 
   return (
     <>
+      {/* Trigger button */}
       <button
         type="button"
         onClick={openChat}
-        className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-(--bg-elevated) px-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-(--bg-surface)"
+        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-[#2E2E3A] bg-linear-to-b from-[#1F1F28] to-[#16161D] text-[13px] font-medium text-[#E8E8EC] shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] hover:from-[#27272F] hover:to-[#1C1C24] hover:text-white transition-all duration-150 cursor-pointer"
         aria-label="Open AI assistant"
+        aria-expanded={open}
       >
-        <Bot size={18} />
-        <span className="hidden sm:inline">AI Assistant</span>
+        <Sparkles size={13} className="text-[#6C47FF]" />
+        <span className="hidden sm:inline">AI Tutor</span>
       </button>
 
-      <Drawer
-        isOpen={open}
-        onClose={() => setOpen(false)}
-        title="AI Assistant"
-        position="right"
-        size="lg"
-        className="border-l border-border bg-(--bg-elevated)"
+      {/* Backdrop */}
+      {open && (
+        <div className="fixed inset-0 z-40 bg-[#111114]/60 backdrop-blur-[2px]" onClick={closeChat} aria-hidden="true" />
+      )}
+
+      {/* Panel */}
+      <aside
+        className={`fixed top-0 right-0 bottom-0 w-full max-w-130 z-50 flex flex-col bg-background border-l border-border shadow-[0_0_60px_rgba(0,0,0,0.4)] transition-transform duration-300 ease-in-out ${open ? "translate-x-0" : "translate-x-full"}`}
+        role="dialog"
+        aria-label="AI Tutor"
+        aria-modal="true"
       >
-        <div className="flex h-full flex-col">
-          <div className="border-b border-border px-6 py-4">
-            <p className="text-sm font-medium text-foreground">Ask about {topic || "this topic"}</p>
-            <p className="mt-1 text-xs text-(--text-secondary)">Context: {module || "git"}</p>
-          </div>
+        <ChatHeader
+          model={OLLAMA_MODEL}
+          isLoading={isLoading}
+          onClear={clearChat}
+          onClose={closeChat}
+        />
 
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5 text-sm">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-3 leading-6 ${msg.role === "user"
-                    ? "bg-(--accent) text-white"
-                    : "border border-border bg-(--bg-surface) text-foreground"
-                    }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            {messages.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-border bg-(--bg-surface) px-4 py-5 text-(--text-secondary)">
-                Ask for hints, explanations, debugging help, or a step-by-step breakdown of the current lesson.
-              </div>
-            )}
-            <div ref={bottomRef} />
-          </div>
+        <MessageList messages={messages} />
 
-          <div className="border-t border-border px-5 py-4">
-            <div className="flex items-end gap-3 rounded-2xl border border-border bg-(--bg-surface) p-3">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault()
-                    void sendMessage()
-                  }
-                }}
-                rows={1}
-                placeholder="Ask something..."
-                className="max-h-32 min-h-10 flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-(--text-secondary)"
-              />
-              <button
-                type="button"
-                onClick={() => void sendMessage()}
-                disabled={!input.trim() || sendingRef.current}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-(--accent) text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Send message"
-              >
-                <SendHorizontal size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </Drawer>
+        <ChatInput
+          value={input}
+          isLoading={isLoading}
+          model={OLLAMA_MODEL}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onSend={() => void sendMessage()}
+          onStop={() => abortRef.current?.abort()}
+          textareaRef={textareaRef}
+        />
+      </aside>
     </>
   )
 }

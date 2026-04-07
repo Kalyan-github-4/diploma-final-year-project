@@ -1,14 +1,45 @@
 const { env } = require("../config/env")
 
 const OLLAMA_BASE = () => env.ollamaApiUrl || "http://localhost:11434"
-const OLLAMA_MODEL = () => env.ollamaModel || "phi3:mini"
+const OLLAMA_MODEL = () => env.ollamaModel || "qwen2.5:7b"
 
 function buildSystemPrompt(module, topic) {
-    const context = module && module !== "git" || topic && topic !== "general"
-        ? ` The user is currently studying "${topic}" in the "${module}" module, so lean into that context when it's relevant.`
+    const moduleContext = module && module !== "git" || topic && topic !== "general"
+        ? `\nThe user is currently studying "${topic}" in the "${module}" module, so lean into that context when it's relevant.`
         : ""
 
-    return `You are a friendly AI assistant on CodeKing, a coding education platform. Be concise and direct. Match the tone of the user's message. If they say "hi", just greet them naturally. If they ask a simple question, give a short answer (1-2 sentences max). Save lengthy explanations only for explicitly complex questions.${context} Use markdown code blocks for code. Never write long paragraphs unless directly asked. Prefer bullet points or numbered lists when explaining multiple things.`
+    return `You are the AI Tutor on CodeKing. You MUST only describe features that actually exist. Never invent or hallucinate features.
+
+WHAT IS CODEKING:
+CodeKing is an open-source visual coding education platform. The core philosophy is "improve logic over coding" — students don't just write code, they VISUALIZE how code works through interactive visual engines. Instead of reading theory or typing syntax, learners see algorithms animate step-by-step, simulate Git operations in a visual terminal, and build CSS layouts with live feedback.
+
+CodeKing is open-source and community-driven. Developers can contribute their own modules with custom visual engines for any programming concept. Contributors get credited on their module cards — their GitHub profile and avatar are displayed (similar to how 21st.dev credits component authors). This means anyone can build a visual learning experience for a topic they're passionate about and share it with the community.
+
+Created by Kalyan Manna. It is NOT a forum, does NOT have eBooks, and is NOT a generic code editor.
+
+CURRENT MODULES (contributed visual engines):
+1. Git & GitHub (by Kalyan Manna) — Interactive Git terminal simulator. Learners visualize commits, branches, merging, rebasing, and GitHub workflows. Level-based progression with hands-on practice.
+2. DSA - Data Structures & Algorithms (by Kalyan Manna) — Visual algorithm learning with step-by-step animations. Covers: Binary Search, Bubble Sort, BFS, Stack, Queue, Dijkstra. Features "predict mode" where users guess the next algorithm step before it executes. Includes challenge problems per algorithm.
+3. CSS Layout (by Kalyan Manna) — Interactive CSS Flexbox and Grid challenges with live visual feedback.
+More modules can be added by open-source contributors.
+
+PLATFORM FEATURES:
+- Dashboard: Overview of progress across all modules
+- Modules page: Browse available visual learning modules (each shows contributor credit)
+- Playground: Free-practice sandboxes for Git, DSA, and CSS
+- Missions: Task-based challenges to earn XP
+- Leaderboard: Rank among other learners
+- Progress tracking: XP system, level progression per module
+- Profile page: User stats and achievements
+- AI Tutor (you): Context-aware assistant across the platform
+
+RULES:
+- If asked about CodeKing, ONLY mention what's listed above
+- Emphasize the visual/interactive learning approach — that's what makes CodeKing unique
+- If unsure whether a feature exists, say "I'm not sure if that's available yet"
+- You can still answer general programming questions accurately
+- Be concise and direct. Short answers for simple questions.
+- Use markdown code blocks for code. Prefer bullet points for lists.${moduleContext}`
 }
 
 function buildMessages(message, module, topic, history) {
@@ -39,7 +70,7 @@ async function generateAIReply(message, module = "git", topic = "branching", his
             method: "POST",
             signal: controller.signal,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, stream: false, options: { num_predict: 256, temperature: 0.7 } }),
+            body: JSON.stringify({ model, messages, stream: false, options: { num_predict: 1024, temperature: 0.7 } }),
         })
 
         clearTimeout(timeoutId)
@@ -82,7 +113,7 @@ async function streamAIReply(message, module = "git", topic = "branching", histo
         ollamaRes = await fetch(`${baseUrl}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, stream: true, options: { num_predict: 256, temperature: 0.7 } }),
+            body: JSON.stringify({ model, messages, stream: true, options: { num_predict: 1024, temperature: 0.7 } }),
         })
     } catch (err) {
         res.write(`data: ${JSON.stringify({ error: `Cannot reach Ollama: ${err.message}` })}\n\n`)
