@@ -1,4 +1,4 @@
-import { ArrowUpDown, Brain, ChevronsRight, Eye, Gauge, GripVertical, Pause, Play, RotateCcw, Search, SkipBack, SkipForward } from "lucide-react"
+import { AlignJustify, ArrowUpDown, Brain, ChevronsRight, Eye, Gauge, GripVertical, Layers, Network, Pause, Play, RotateCcw, Route, Search, SkipBack, SkipForward } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { DSAAlgorithm, PlaybackState } from "@/types/dsa.types"
@@ -8,7 +8,6 @@ interface DSAHeaderControlsProps {
   algorithmLabel: string
   playback: PlaybackState
   isQuestionAnswered: boolean
-  onAlgorithmChange: (value: DSAAlgorithm) => void
   onModeChange: (value: PlaybackState["mode"]) => void
   onReplay: () => void
   onBack: () => void
@@ -23,7 +22,6 @@ export function DSAHeaderControls({
   algorithmLabel,
   playback,
   isQuestionAnswered,
-  onAlgorithmChange,
   onModeChange,
   onReplay,
   onBack,
@@ -37,33 +35,25 @@ export function DSAHeaderControls({
       <div>
         <p className="m-0 text-xs text-(--text-secondary) font-grotesk">Algorithm</p>
         <h1 className="m-0 inline-flex items-center gap-2 text-[20px] font-bold font-grotesk">
-          {algorithm === "binary-search" ? <Search className="size-5" aria-hidden="true" /> : <ArrowUpDown className="size-5" aria-hidden="true" />}
+          {algorithm === "binary-search" ? (
+            <Search className="size-5" aria-hidden="true" />
+          ) : algorithm === "bfs" ? (
+            <Network className="size-5" aria-hidden="true" />
+          ) : algorithm === "stack" ? (
+            <Layers className="size-5" aria-hidden="true" />
+          ) : algorithm === "queue" ? (
+            <AlignJustify className="size-5" aria-hidden="true" />
+          ) : algorithm === "dijkstra" ? (
+            <Route className="size-5" aria-hidden="true" />
+          ) : (
+            <ArrowUpDown className="size-5" aria-hidden="true" />
+          )}
           <span>{algorithmLabel}</span>
         </h1>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={algorithm} onValueChange={(value) => onAlgorithmChange(value as DSAAlgorithm)}>
-            <SelectTrigger className="h-9 min-w-36 rounded-[10px] border-border bg-background text-foreground shadow-none hover:border-(--border-hover) hover:bg-(--bg-surface)">
-              <SelectValue placeholder="Select algorithm" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="binary-search">
-                <span className="inline-flex items-center gap-2">
-                  <Search className="size-4" aria-hidden="true" />
-                  Binary Search
-                </span>
-              </SelectItem>
-              <SelectItem value="bubble-sort">
-                <span className="inline-flex items-center gap-2">
-                  <ArrowUpDown className="size-4" aria-hidden="true" />
-                  Bubble Sort
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
           <Select value={playback.mode} onValueChange={(value) => onModeChange(value as PlaybackState["mode"])}>
             <SelectTrigger className="h-9 min-w-36 rounded-[10px] border-border bg-background text-foreground shadow-none hover:border-(--border-hover) hover:bg-(--bg-surface)">
               <SelectValue placeholder="Select mode" />

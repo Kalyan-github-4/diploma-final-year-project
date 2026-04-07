@@ -41,7 +41,8 @@ function createSnapshot(
   low: number,
   high: number,
   mid: number | null,
-  foundIndex: number | null
+  foundIndex: number | null,
+  checkedIndices: number[]
 ): BinarySearchSnapshot {
   const focusIndices = [low, high, mid]
     .filter((value): value is number => value !== null)
@@ -55,6 +56,7 @@ function createSnapshot(
     mid,
     focusIndices,
     foundIndex,
+    checkedIndices: [...checkedIndices],
   }
 }
 
@@ -67,6 +69,7 @@ export function generateBinarySearchSteps({
 
   let low = 0
   let high = sortedArray.length - 1
+  const checkedIndices: number[] = []
 
   const pushStep = (
     type: BinarySearchStep["type"],
@@ -82,7 +85,7 @@ export function generateBinarySearchSteps({
       type,
       description,
       codeLine,
-      snapshot: createSnapshot(sortedArray, target, low, high, mid, foundIndex),
+      snapshot: createSnapshot(sortedArray, target, low, high, mid, foundIndex, checkedIndices),
       question,
     })
   }
@@ -136,6 +139,8 @@ export function generateBinarySearchSteps({
         resultIndex: mid,
       }
     }
+
+    checkedIndices.push(mid)
 
     if (sortedArray[mid] < target) {
       low = mid + 1

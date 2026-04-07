@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { useParams } from "react-router-dom"
 import { trackDSAEvent } from "@/lib/analytics/dsa-events"
 import { BINARY_SEARCH_COMPLEXITY, BINARY_SEARCH_REFERENCE_CODE, generateBinarySearchSteps } from "@/lib/algorithms/binarySearch"
 import { BUBBLE_SORT_COMPLEXITY, BUBBLE_SORT_REFERENCE_CODE, generateBubbleSortSteps } from "@/lib/algorithms/bubbleSort"
+import { BFS_COMPLEXITY, BFS_REFERENCE_CODE, generateBFSSteps } from "@/lib/algorithms/bfs"
+import { STACK_COMPLEXITY, STACK_REFERENCE_CODE, generateStackSteps } from "@/lib/algorithms/stack"
+import { QUEUE_COMPLEXITY, QUEUE_REFERENCE_CODE, generateQueueSteps } from "@/lib/algorithms/queue"
+import { DIJKSTRA_COMPLEXITY, DIJKSTRA_REFERENCE_CODE, generateDijkstraSteps } from "@/lib/algorithms/dijkstra"
 import { runSafeBinarySearchPseudocode } from "@/lib/algorithms/safePseudocodeRunner"
 import { generateAIDSAQuestions } from "@/services/dsa-ai.service"
 import type { ComplexityMeta, DSAAlgorithm, PlaybackState, DSAStep, StepQuestion } from "@/types/dsa.types"
@@ -14,6 +19,7 @@ import { DSAWatchPanel } from "./components/DSAWatchPanel"
 const BINARY_DEFAULT_ARRAY = [2, 5, 8, 12, 16, 23, 38]
 const BINARY_DEFAULT_TARGET = 23
 const BUBBLE_DEFAULT_ARRAY = [64, 34, 25, 12, 22, 11, 90]
+const BFS_DEFAULT_START = "A"
 const PREDICT_XP_PER_CORRECT = 15
 const CODE_XP_REWARD = 35
 const PREDICT_CONTINUE_DELAY_MS = 1500
@@ -21,6 +27,7 @@ const PREDICT_CONTINUE_DELAY_MS = 1500
 interface BinarySearchInputConfig {
   array: number[]
   target: number
+  startNode?: string
 }
 
 interface AlgorithmRuntime {
@@ -55,14 +62,30 @@ function isSortedAscending(values: number[]): boolean {
   return true
 }
 
+const ALGORITHM_BY_LEVEL: Record<string, DSAAlgorithm> = {
+  "1": "binary-search",
+  "2": "bubble-sort",
+  "3": "bfs",
+  "4": "stack",
+  "5": "queue",
+  "6": "dijkstra",
+}
+
 export default function DSALearningPage() {
-  const [algorithm, setAlgorithm] = useState<DSAAlgorithm>("binary-search")
+  const { levelId } = useParams<{ levelId: string }>()
+  const algorithm: DSAAlgorithm = ALGORITHM_BY_LEVEL[levelId ?? ""] ?? "binary-search"
+
+  const defaultArray = algorithm === "binary-search" ? BINARY_DEFAULT_ARRAY : BUBBLE_DEFAULT_ARRAY
+  const defaultTarget = algorithm === "binary-search" ? BINARY_DEFAULT_TARGET : 0
+
   const [inputConfig, setInputConfig] = useState<BinarySearchInputConfig>({
-    array: BINARY_DEFAULT_ARRAY,
-    target: BINARY_DEFAULT_TARGET,
+    array: defaultArray,
+    target: defaultTarget,
+    startNode: BFS_DEFAULT_START,
   })
-  const [arrayInput, setArrayInput] = useState(BINARY_DEFAULT_ARRAY.join(", "))
-  const [targetInput, setTargetInput] = useState(String(BINARY_DEFAULT_TARGET))
+  const [arrayInput, setArrayInput] = useState(defaultArray.join(", "))
+  const [targetInput, setTargetInput] = useState(String(defaultTarget))
+  const [startNodeInput, setStartNodeInput] = useState(BFS_DEFAULT_START)
   const [inputError, setInputError] = useState<string | null>(null)
   const [predictAnswered, setPredictAnswered] = useState(false)
   const [predictOverlayResult, setPredictOverlayResult] = useState<"correct" | "wrong" | null>(null)
@@ -102,6 +125,54 @@ export default function DSALearningPage() {
         complexity: BINARY_SEARCH_COMPLEXITY,
         referenceCode: BINARY_SEARCH_REFERENCE_CODE,
         expectedResultIndex: resultIndex,
+      }
+    }
+
+    if (algorithm === "bfs") {
+      const { steps, visitedOrder } = generateBFSSteps({
+        startNode: inputConfig.startNode ?? BFS_DEFAULT_START,
+      })
+      return {
+        algorithmLabel: "Breadth-First Search",
+        steps,
+        resultLabel: `Visited: ${visitedOrder.join(" → ")}`,
+        complexity: BFS_COMPLEXITY,
+        referenceCode: BFS_REFERENCE_CODE,
+      }
+    }
+
+    if (algorithm === "stack") {
+      const { steps, finalItems } = generateStackSteps()
+      return {
+        algorithmLabel: "Stack (LIFO)",
+        steps,
+        resultLabel: `Final stack (bottom→top): [${finalItems.join(", ") || "empty"}]`,
+        complexity: STACK_COMPLEXITY,
+        referenceCode: STACK_REFERENCE_CODE,
+      }
+    }
+
+    if (algorithm === "queue") {
+      const { steps, finalItems } = generateQueueSteps()
+      return {
+        algorithmLabel: "Queue (FIFO)",
+        steps,
+        resultLabel: `Final queue (front→rear): [${finalItems.join(", ") || "empty"}]`,
+        complexity: QUEUE_COMPLEXITY,
+        referenceCode: QUEUE_REFERENCE_CODE,
+      }
+    }
+
+    if (algorithm === "dijkstra") {
+      const { steps, shortestDistances } = generateDijkstraSteps({
+        startNode: inputConfig.startNode ?? "A",
+      })
+      return {
+        algorithmLabel: "Dijkstra's Shortest Path",
+        steps,
+        resultLabel: `Shortest: ${Object.entries(shortestDistances).map(([n, d]) => `${n}=${d === 9999 ? "∞" : d}`).join(", ")}`,
+        complexity: DIJKSTRA_COMPLEXITY,
+        referenceCode: DIJKSTRA_REFERENCE_CODE,
       }
     }
 
@@ -453,49 +524,6 @@ export default function DSALearningPage() {
     }, PREDICT_CONTINUE_DELAY_MS)
   }
 
-  const handleAlgorithmChange = (nextAlgorithm: DSAAlgorithm) => {
-    setAlgorithm(nextAlgorithm)
-    if (predictContinueTimerRef.current) {
-      clearTimeout(predictContinueTimerRef.current)
-      predictContinueTimerRef.current = null
-    }
-
-    setPredictAnswered(false)
-    setPredictOverlayResult(null)
-    setPredictOverlayMessage(null)
-    setPredictXp(0)
-    setCodeRunMessage(null)
-    setCodeRunStatus("idle")
-    setCodeRunXp(0)
-    setCodeRunSteps(null)
-    setCodeEditorValue("")
-    setInputError(null)
-
-    setPlayback((prev) => ({
-      ...prev,
-      currentStep: 0,
-      isPlaying: false,
-      mode: "watch",
-    }))
-
-    if (nextAlgorithm === "binary-search") {
-      setArrayInput(BINARY_DEFAULT_ARRAY.join(", "))
-      setTargetInput(String(BINARY_DEFAULT_TARGET))
-      setInputConfig({
-        array: BINARY_DEFAULT_ARRAY,
-        target: BINARY_DEFAULT_TARGET,
-      })
-      return
-    }
-
-    setArrayInput(BUBBLE_DEFAULT_ARRAY.join(", "))
-    setTargetInput("0")
-    setInputConfig({
-      array: BUBBLE_DEFAULT_ARRAY,
-      target: 0,
-    })
-  }
-
   const handleModeChange = (nextMode: PlaybackState["mode"]) => {
     if (predictContinueTimerRef.current) {
       clearTimeout(predictContinueTimerRef.current)
@@ -636,7 +664,7 @@ export default function DSALearningPage() {
 
   if (!activeSteps.length) {
     return (
-      <div className="flex h-full flex-col gap-3.5 p-1 font-sans">
+      <div className="flex min-h-full flex-col gap-3.5 p-1 font-sans">
         <div className="min-h-0 overflow-auto rounded-xl border border-(--card-border) bg-card p-3">
           <h3 className="font-grotesk">Unable to load algorithm steps</h3>
           <p>Try resetting inputs or switching algorithm.</p>
@@ -646,28 +674,54 @@ export default function DSALearningPage() {
   }
 
   const isBinaryMode = algorithm === "binary-search"
+  const isGraphMode = algorithm === "bfs"
+  const isStackMode = algorithm === "stack"
+  const isQueueMode = algorithm === "queue"
+  const isDijkstraMode = algorithm === "dijkstra"
+
   const buildQuestion = isBinaryMode
     ? `Write pseudocode to find target ${inputConfig.target} in [${inputConfig.array.join(", ")}]. Return the correct index or -1.`
-    : `Write pseudocode to sort [${inputConfig.array.join(", ")}] in ascending order.`
+    : isGraphMode || isStackMode || isQueueMode || isDijkstraMode
+      ? `Build mode is not available for this algorithm yet.`
+      : `Write pseudocode to sort [${inputConfig.array.join(", ")}] in ascending order.`
 
   const pointerState = isBinaryMode
     ? (() => {
         const snapshot = currentStep.snapshot as { low?: number; mid?: number | null; high?: number }
         return `low=${snapshot.low ?? "-"}, mid=${snapshot.mid ?? "-"}, high=${snapshot.high ?? "-"}`
       })()
-    : (() => {
-        const snapshot = currentStep.snapshot as { pass?: number; compareIndices?: number[] }
-        return `pass=${snapshot.pass ?? 0}, compare=${snapshot.compareIndices?.join(",") || "-"}`
-      })()
+    : isGraphMode
+      ? (() => {
+          const snapshot = currentStep.snapshot as { queue?: string[]; currentNode?: string | null }
+          return `queue=[${snapshot.queue?.join(",") || ""}], current=${snapshot.currentNode ?? "-"}`
+        })()
+      : isStackMode
+        ? (() => {
+            const snapshot = currentStep.snapshot as { items?: number[]; topIndex?: number | null }
+            return `top=${snapshot.topIndex ?? "-"}, size=${snapshot.items?.length ?? 0}`
+          })()
+        : isQueueMode
+          ? (() => {
+              const snapshot = currentStep.snapshot as { items?: number[]; frontIndex?: number | null }
+              return `front=${snapshot.items?.[0] ?? "-"}, size=${snapshot.items?.length ?? 0}`
+            })()
+          : isDijkstraMode
+            ? (() => {
+                const snapshot = currentStep.snapshot as { currentNode?: string | null; visited?: string[] }
+                return `current=${snapshot.currentNode ?? "-"}, settled=${snapshot.visited?.length ?? 0}`
+              })()
+            : (() => {
+              const snapshot = currentStep.snapshot as { pass?: number; compareIndices?: number[] }
+              return `pass=${snapshot.pass ?? 0}, compare=${snapshot.compareIndices?.join(",") || "-"}`
+            })()
 
   return (
-    <div className="flex h-full flex-col gap-3.5 p-1 font-sans">
+    <div className="flex min-h-full flex-col gap-3.5 p-1 font-sans">
       <DSAHeaderControls
         algorithm={algorithm}
         algorithmLabel={algorithmLabel}
         playback={playback}
         isQuestionAnswered={isQuestionAnswered}
-        onAlgorithmChange={handleAlgorithmChange}
         onModeChange={handleModeChange}
         onReplay={handleReplay}
         onBack={() => setStep(playback.currentStep - 1)}
@@ -677,11 +731,11 @@ export default function DSALearningPage() {
         onSpeedChange={(value) => setPlayback((prev) => ({ ...prev, speedMs: value }))}
       />
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="grid min-h-0 grid-rows-[1fr_1fr] gap-3 xl:grid-rows-[1.2fr_1fr]">
+      <div className="grid flex-1 grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="grid grid-rows-[auto_auto] gap-3">
           <DSAVisualizer
             currentStep={currentStep}
-            isBinaryMode={isBinaryMode}
+            algorithm={algorithm}
             predictOverlayResult={predictOverlayResult}
             isPredictOverlayVisible={isPredictOverlayVisible}
             activePredictQuestion={activePredictQuestion}
@@ -726,10 +780,20 @@ export default function DSALearningPage() {
               algorithm={algorithm}
               arrayInput={arrayInput}
               targetInput={targetInput}
+              startNodeInput={startNodeInput}
               inputError={inputError}
               complexity={complexity}
               onArrayInputChange={setArrayInput}
               onTargetInputChange={setTargetInput}
+              onStartNodeChange={(node) => {
+                setStartNodeInput(node)
+                setInputConfig((prev) => ({ ...prev, startNode: node }))
+                setPredictAnswered(false)
+                setPredictOverlayResult(null)
+                setPredictOverlayMessage(null)
+                setPredictXp(0)
+                setPlayback((prev) => ({ ...prev, currentStep: 0, isPlaying: false }))
+              }}
               onApplyCustomInput={applyCustomInput}
             />
           )}
