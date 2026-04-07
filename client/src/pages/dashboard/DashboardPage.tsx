@@ -12,7 +12,7 @@ const Dashboard = () => {
     <div className="space-y-6">
       <div className="flex items-start justify-between mb-2">
         <div className="text-xl font-bold font-grotesk text-foreground">Continue Learning</div>
-        <Button variant="link" onClick={() => navigate("/modules")} className="font-medium">View Roadmap</Button>
+        <Button variant="link" onClick={() => navigate("/modules")} className="text-[11px]">View Roadmap</Button>
       </div>
 
       {/* Placeholder for ongoing modules or courses */}
@@ -34,7 +34,7 @@ const Dashboard = () => {
         <div className="col-span-1">
           <div className="col-span-2 space-y-5">
           <div className="space-y-4">
-            <h3 className="text-xl font-bold font-grotesk text-foreground">Achivements</h3>
+            <h3 className="text-xl font-bold font-grotesk text-foreground">Achievements</h3>
             <div><Achivement /></div>
           </div>
 

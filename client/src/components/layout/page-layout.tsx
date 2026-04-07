@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router-dom"
 import Sidebar from "./sidebar"
 import Topbar from "./topbar"
 
-const hideTopbarRoutes = ["/modules/css-flexbox", "/modules/git", "/modules/layout-engineering"]
+const hideTopbarRoutes = ["/modules/css-flexbox", "/modules/git", "/playground/git", "/playground/dsa"]
 
 const PageLayout = () => {
   const { pathname } = useLocation()

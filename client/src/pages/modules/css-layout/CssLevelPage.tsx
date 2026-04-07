@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { CSS_CHALLENGES } from "./data/challenges.data"
 import { validateCss } from "./lib/validate"
 import { loadModuleProgress, saveModuleProgress } from "../git/levels.data"
+import { useProgressSync } from "@/hooks/useProgressSync"
 import CssTopBar from "./components/CssTopBar"
 import LayoutPreview from "./components/LayoutPreview"
 import CssEditor from "./components/CssEditor"
@@ -14,6 +15,7 @@ const SLUG = "css-layout"
 export default function CssLevelPage() {
   const { levelId } = useParams<{ levelId: string }>()
   const navigate = useNavigate()
+  const { completeLevel: syncLevel } = useProgressSync(SLUG)
 
   const levelNum = parseInt(levelId ?? "1", 10)        // 1-based
   const challengeIndex = levelNum - 1                  // 0-based
@@ -47,6 +49,7 @@ export default function CssLevelPage() {
   if (matchPercent === 100 && !completedLevels.has(levelNum) && !showVictory) {
     setShowVictory(true)
     setCompletedLevels((prev) => new Set([...prev, levelNum]))
+    syncLevel(levelNum, challenge.xp)
   }
 
   /* Persist progress to localStorage when completedLevels changes — no setState here */

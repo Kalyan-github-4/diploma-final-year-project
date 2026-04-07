@@ -4,7 +4,13 @@ import type { ModuleCardProps } from "./ModuleCard"
 import { ModuleGridSkeleton } from "./ModuleGridSkeleton"
 import { useState, useEffect } from "react"
 import type { ModuleDTO } from "@/types/module"
-import { getIcon } from "@/lib/getIcon"
+
+const MODULE_IMAGES: Record<string, string> = {
+  "git-github": "/github.png",
+  "dsa": "/dsa.png",
+  "css-layout": "/css layout.png",
+}
+
 
 const Module = () => {
   const [modulesData, setModulesData] = useState<ModuleCardProps[]>([])
@@ -24,11 +30,15 @@ const Module = () => {
           progress: 0,
           topics: mod.topicsCount,
           xp: mod.totalXp,
-          level: mod.difficulty.toUpperCase(),
           status: "not-started" as const,
-          icon: getIcon(mod.icon),
+          image: MODULE_IMAGES[mod.slug] || `/modules/${mod.slug}.png`,
           color: mod.themeColor,
-          link: `/modules/${mod.slug}`
+          link: `/modules/${mod.slug}`,
+          author: {
+            name: "Kalyan Manna",
+            github: "Kalyan-github-4",
+            avatar: "https://github.com/Kalyan-github-4.png",
+          },
         }))
         setModulesData(mappedModules)
       } catch (error) {
@@ -50,7 +60,7 @@ const Module = () => {
             Modules
           </h1>
 
-          <p className="text-sm text-foreground font-sans">
+          <p className="text-sm text-(--text-secondary) font-sans">
             Explore the various modules available in CodeKing.
           </p>
         </div>

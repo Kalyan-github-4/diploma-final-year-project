@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
+import { ArrowRight, Lock } from "lucide-react"
 
 export type ModuleStatus =
   | "in-progress"
@@ -14,37 +15,22 @@ export type ModuleCardProps = {
   progress: number
   topics: number
   xp: number
-  level: string
   status: ModuleStatus
-  icon: React.ReactNode
+  image: string
   color: string
   link?: string
+  author?: {
+    name: string
+    github: string
+    avatar: string
+  }
 }
 
-const statusStyles = {
-  "in-progress": {
-    button: "Continue",
-    buttonVariant: "secondary",
-    progressColor: "bg-orange-500"
-  },
-
-  completed: {
-    button: "Review",
-    buttonVariant: "outline",
-    progressColor: "bg-green-500"
-  },
-
-  "not-started": {
-    button: "Start Module",
-    buttonVariant: "default",
-    progressColor: "bg-purple-500"
-  },
-
-  locked: {
-    button: "Unlock",
-    buttonVariant: "outline",
-    progressColor: "bg-gray-500"
-  }
+const statusConfig = {
+  "in-progress": { label: "Continue", variant: "default" },
+  completed: { label: "Review", variant: "outline" },
+  "not-started": { label: "Start", variant: "default" },
+  locked: { label: "Locked", variant: "outline" },
 } as const
 
 export const ModuleCard = ({
@@ -53,74 +39,105 @@ export const ModuleCard = ({
   progress,
   topics,
   xp,
-  level,
   status,
-  icon,
+  image,
   color,
-  link
+  link,
+  author,
 }: ModuleCardProps) => {
   const navigate = useNavigate()
-  const ui = statusStyles[status]
+  const ui = statusConfig[status]
+  const isLocked = status === "locked"
 
   return (
-    <div className="bg-(--bg-elevated) border border-border rounded-2xl p-6 flex flex-col justify-between transition hover:shadow-md">
+    <div
+      className={`group relative flex flex-col rounded-xl border border-border bg-(--bg-elevated) transition-all duration-200 hover:border-(--border-hover) hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)] ${isLocked ? "opacity-60" : "cursor-pointer"}`}
+      onClick={() => !isLocked && link && navigate(link)}
+    >
+      {/* Card body */}
+      <div className="flex flex-1 flex-col p-5">
 
-      {/* Top */}
-      <div className="flex justify-between items-start">
+        {/* Top row: module image + XP badge */}
+        <div className="flex items-center justify-between">
+          <img
+            src={image}
+            alt={title}
+            className="h-10 w-10 rounded-lg object-contain"
+          />
 
-        <div
-          className="flex items-center justify-center rounded-2xl h-12 w-12"
-          style={{ backgroundColor: `${color}1A`, color: color }}
-        >
-          {icon}
+          <span className="rounded-md bg-[#F59E0B]/12 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#F59E0B]">
+            +{xp} XP
+          </span>
         </div>
 
-        <div
-          className="text-[10px] px-2 py-1 rounded-sm font-medium"
-          style={{
-            backgroundColor: `${color}1A`,
-            color: color
+        {/* Title + description */}
+        <div className="mt-3.5">
+          <h3 className="font-grotesk text-[15px] font-semibold text-foreground leading-snug">
+            {title}
+          </h3>
+          <p className="mt-1 text-[13px] leading-relaxed text-(--text-secondary) line-clamp-2">
+            {description}
+          </p>
+        </div>
+
+        {/* Stats row */}
+        <div className="mt-auto flex items-center gap-3 pt-4 text-[11px] text-(--text-tertiary)">
+          <span>{topics} topics</span>
+          {progress > 0 && (
+            <>
+              <span className="h-0.5 w-0.5 rounded-full bg-(--text-tertiary)" />
+              <span>{progress}%</span>
+            </>
+          )}
+        </div>
+
+        {/* Progress bar */}
+        {progress > 0 && (
+          <Progress value={progress} className="mt-2 h-0.5" indicatorColor={color} />
+        )}
+      </div>
+
+      {/* Footer: author + action */}
+      <div className="flex items-center justify-between border-t border-border px-5 py-3">
+
+        {/* Author */}
+        {author ? (
+          <a
+            href={`https://github.com/${author.github}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={author.avatar}
+              alt={author.name}
+              className="h-5 w-5 rounded-full ring-1 ring-border"
+            />
+            <span className="text-[12px] text-(--text-secondary) font-medium">
+              {author.name}
+            </span>
+          </a>
+        ) : (
+          <span />
+        )}
+
+        {/* Action button */}
+        <Button
+          variant={ui.variant}
+          size="xs"
+          disabled={isLocked}
+          className="gap-1"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (link) navigate(link)
           }}
         >
-          {level}
-        </div>
-
-      </div>
-
-      {/* Title */}
-      <div className="mt-4 space-y-1">
-        <h3 className="font-grotesk text-lg font-bold text-foreground">
-          {title}
-        </h3>
-
-        <p className="font-sans text-sm text-foreground">
-          {description}
-        </p>
-      </div>
-
-      {/* Progress */}
-      <div className="mt-4 flex items-center justify-between text-xs font-sans text-(--text-secondary)">
-        <span>{progress}% Complete</span>
-        <span>{topics} Topics</span>
-      </div>
-
-      <Progress value={progress} className="mt-2 h-1" indicatorColor={color} />
-
-      {/* Footer */}
-      <div className="mt-4 flex items-center justify-between text-xs font-sans text-(--text-secondary)">
-        <span>+{xp}xp</span>
-
-        <Button
-          variant={ui.buttonVariant}
-          size="sm"
-          disabled={status === "locked"}
-          className="rounded-lg"
-          onClick={() => link && navigate(link)}
-        >
-          {ui.button}
+          {isLocked ? <Lock size={12} /> : null}
+          {ui.label}
+          {!isLocked && <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5" />}
         </Button>
       </div>
-
     </div>
   )
 }

@@ -175,10 +175,10 @@ export default function GitSandbox() {
 
       {/* Graph + Terminal */}
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex min-h-0 flex-55 overflow-hidden">
+        <div className="flex min-h-0 overflow-hidden" style={{ flex: "55 1 0%" }}>
           <GitGraph gitState={gitState} newCommitId={newCommitId} />
         </div>
-        <div className="flex min-h-0 flex-45 overflow-hidden">
+        <div className="flex min-h-0 overflow-hidden" style={{ flex: "45 1 0%" }}>
           <Terminal
             history={terminalHistory}
             currentBranch={currentBranch}

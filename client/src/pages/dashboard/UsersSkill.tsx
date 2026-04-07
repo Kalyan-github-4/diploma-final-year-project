@@ -25,7 +25,7 @@ const UsersSkill = () => {
             <div className="space-y-2">
                 <div className="flex justify-between">
                     <h5 className="text-sm text-foreground font-medium">Data Structure & Algo</h5>
-                    <p className="text-sm text-[#3B82F6]">Learning</p>
+                    <p className="text-xs text-[#3B82F6]">Learning</p>
                 </div>
                 <Progress value={60} className="w-full" indicatorColor="#3B82F6" />
             </div>

@@ -2,8 +2,13 @@ import { useParams, useNavigate, Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { ArrowLeft, Zap, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { getIcon } from "@/lib/getIcon"
 import type { ModuleDTO } from "@/types/module"
+
+const MODULE_IMAGES: Record<string, string> = {
+  "git-github": "/github.png",
+  "dsa": "/dsa.png",
+  "css-layout": "/css layout.png",
+}
 import { getModuleLevels, loadModuleProgress } from "./git/levels.data"
 import type {  LevelDifficulty, ModuleProgress } from "./git/levels.data"
 import { DifficultySection } from "./moduleDetails/DifficultySection"
@@ -146,24 +151,19 @@ const ModuleDetailPage = () => {
       <div className="bg-(--bg-elevated) border border-border rounded-2xl p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row sm:items-start gap-6">
 
-          {/* Icon */}
-          <div className="flex items-center justify-center h-14 w-14 rounded-2xl shrink-0"
-          style={{
-            backgroundColor: module.themeColor + "10",
-            color: module.themeColor
-          }}>
-            {getIcon(module.icon)}
-          </div>
+          {/* Module logo */}
+          <img
+            src={MODULE_IMAGES[module.slug] || `/modules/${module.slug}.png`}
+            alt={module.title}
+            className="h-14 w-14 rounded-2xl object-contain shrink-0"
+          />
 
           {/* Info */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="mb-2">
               <h1 className="text-2xl font-bold font-grotesk text-foreground">
                 {module.title}
               </h1>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-(--bg-surface) text-muted-foreground uppercase tracking-wider border border-border">
-                {module.difficulty}
-              </span>
             </div>
 
             <p className="text-sm text-muted-foreground leading-relaxed mb-4">

@@ -20,7 +20,7 @@ const Topbar = () => {
 
         <AIAssistant />
         <div className="h-6 w-px bg-[#3D3D3D] opacity-60"></div>
-        <Notification className="h-10 w-10 rounded-xl border border-border bg-(--bg-elevated)" />
+        <Notification className="h-8 w-8 rounded-lg border border-[#2E2E3A] bg-linear-to-b from-[#1F1F28] to-[#16161D] shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] hover:from-[#27272F] hover:to-[#1C1C24] hover:text-white" />
       </div>
     </div>
   );

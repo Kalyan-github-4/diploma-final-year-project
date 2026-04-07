@@ -4,6 +4,8 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import DangerZone from "./DangerZone"
 import ChangePasswordModal from "./ChangePasswordModal"
 import { Button } from "@/components/ui/button"
+import { Volume2 } from "lucide-react"
+import { useVoicePreference, VOICE_OPTIONS } from "@/hooks/useVoicePreference"
 
 interface ProfileSettingsProps {
   name: string
@@ -29,6 +31,37 @@ export default function ProfileSettings({
   onAvatarPreset,
 }: ProfileSettingsProps) {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+  const { voiceId, setVoice } = useVoicePreference()
+  const [previewLoading, setPreviewLoading] = useState<string | null>(null)
+
+  const previewVoice = async (id: string) => {
+    setPreviewLoading(id)
+    try {
+      const res = await fetch("http://localhost:8880/v1/audio/speech", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: "Hey! I'm your AI tutor on CodeKing. Let's learn something awesome today!",
+          voice: id,
+          model: "kokoro",
+          response_format: "mp3",
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const audio = new Audio(url)
+      audio.onended = () => URL.revokeObjectURL(url)
+      audio.play()
+    } catch {
+      // Fallback browser preview
+      const utter = new SpeechSynthesisUtterance("Hey! I'm your AI tutor on CodeKing.")
+      speechSynthesis.speak(utter)
+    } finally {
+      setPreviewLoading(null)
+    }
+  }
+
   return (
     <section className="rounded-xl border border-border p-4.5 [background:var(--bg-elevated,#141414)]">
       <div className="mb-3.5 flex items-center justify-between">
@@ -37,7 +70,7 @@ export default function ProfileSettings({
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 max-[720px]:grid-cols-1">
+      <div className="grid grid-cols-3 gap-3 max-[900px]:grid-cols-2 max-[600px]:grid-cols-1">
         <article className="flex flex-col gap-2.5 rounded-[10px] border border-border p-3">
           <div className="flex items-center justify-between">
             <h3 className="mb-2.5 font-gortesk text-[14px] font-semibold text-foreground">
@@ -85,6 +118,57 @@ export default function ProfileSettings({
                 </div>
               ))}
             </div>
+          </div>
+        </article>
+
+        <article className="flex flex-col gap-3 rounded-[10px] border border-border p-3">
+          <h3 className="font-gortesk text-[14px] font-semibold text-foreground">
+            AI Voice
+          </h3>
+          <p className="text-[11px] text-(--text-tertiary) -mt-1">
+            Choose how the AI Tutor sounds when reading responses aloud.
+          </p>
+
+          <div className="grid grid-cols-2 gap-2">
+            {VOICE_OPTIONS.map((voice) => (
+              <button
+                key={voice.id}
+                type="button"
+                onClick={() => setVoice(voice.id)}
+                className={`flex items-center gap-2.5 rounded-lg border p-2.5 text-left transition-all cursor-pointer ${
+                  voiceId === voice.id
+                    ? "border-[#6C47FF] bg-[#6C47FF]/5"
+                    : "border-border hover:border-(--border-hover)"
+                }`}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] font-semibold text-foreground">{voice.label}</span>
+                    <span className="text-[10px] text-(--text-tertiary) capitalize">{voice.gender}</span>
+                    {voice.accent === "british" && (
+                      <span className="text-[9px] bg-(--bg-surface) border border-border rounded px-1 py-px text-(--text-tertiary)">UK</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-(--text-tertiary) mt-0.5">{voice.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    previewVoice(voice.id)
+                  }}
+                  disabled={previewLoading === voice.id}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-(--text-tertiary) hover:text-[#6C47FF] hover:border-[#6C47FF]/30 transition-colors disabled:opacity-40"
+                  title="Preview voice"
+                >
+                  {previewLoading === voice.id ? (
+                    <span className="w-3 h-3 border-2 border-(--text-tertiary) border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Volume2 size={12} />
+                  )}
+                </button>
+              </button>
+            ))}
           </div>
         </article>
 

@@ -1,21 +1,38 @@
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import type { ModuleCardProps } from "../modules/ModuleCard"
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import type { ModuleDTO } from "@/types/module"
-import { getIcon } from "@/lib/getIcon"
 import { ModuleGridSkeleton } from "../modules/ModuleGridSkeleton"
+import { ArrowRight } from "lucide-react"
+
+const MODULE_IMAGES: Record<string, string> = {
+    "git-github": "/github.png",
+    "dsa": "/dsa.png",
+    "css-layout": "/css layout.png",
+}
+
+interface DashboardModule {
+    title: string
+    description: string
+    progress: number
+    topics: number
+    xp: number
+    image: string
+    color: string
+    slug: string
+}
 
 const DashboardModuleCard = () => {
-    const [modules, setModules] = useState<ModuleCardProps[]>([])
+    const [modules, setModules] = useState<DashboardModule[]>([])
     const [loading, setLoading] = useState(true)
+    const navigate = useNavigate()
 
     useEffect(() => {
         const loadModules = async () => {
             try {
                 const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/modules`)
                 const data = await res.json()
-                setModules(data.slice(0, 3)) // Update with real data, still showing only first 3
 
                 const mappedModules = data.map((mod: ModuleDTO) => ({
                     title: mod.title,
@@ -23,11 +40,9 @@ const DashboardModuleCard = () => {
                     progress: 0,
                     topics: mod.topicsCount,
                     xp: mod.totalXp,
-                    level: mod.difficulty.toUpperCase(),
-                    status: "not-started" as const,
-                    icon: getIcon(mod.icon),
+                    image: MODULE_IMAGES[mod.slug] || `/modules/${mod.slug}.png`,
                     color: mod.themeColor,
-                    link: `/modules/${mod.slug}`
+                    slug: mod.slug,
                 }))
                 setModules(mappedModules)
             } catch (error) {
@@ -35,7 +50,6 @@ const DashboardModuleCard = () => {
             } finally {
                 setLoading(false)
             }
-
         }
         loadModules()
     }, [])
@@ -49,32 +63,24 @@ const DashboardModuleCard = () => {
                     modules.slice(0, 3).map((module, index) => (
                         <div
                             key={index}
-                            className="bg-(--bg-elevated) border border-border 
-                            rounded-2xl p-4 xl:p-5 flex flex-col justify-between gap-3 min-w-0"
-                    >
+                            className="bg-(--bg-elevated) border border-border rounded-xl p-4 xl:p-5 flex flex-col justify-between gap-3 min-w-0 cursor-pointer transition-all duration-200 hover:border-(--border-hover) hover:shadow-[0_2px_12px_rgba(0,0,0,0.15)]"
+                            onClick={() => navigate(`/modules/${module.slug}`)}
+                        >
                         {/* Top row */}
                         <div className="flex justify-between items-start">
-                            <div
-                                className="p-2 rounded-lg"
-                                style={{
-                                    backgroundColor: module.color + "15",
-                                    color: module.color
-                                }}
-                            >
-                                {module.icon}
-                            </div>
-                            <div className="text-xs font-medium rounded-xs px-2.5 py-0.5"
-                                style={{
-                                    backgroundColor: module.color + "15",
-                                    color: module.color
-                                }}>
-                                {module.level}
-                            </div>
+                            <img
+                                src={module.image}
+                                alt={module.title}
+                                className="h-10 w-10 rounded-lg object-contain"
+                            />
+                            <span className="rounded-md bg-[#F59E0B]/12 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-[#F59E0B]">
+                                +{module.xp} XP
+                            </span>
                         </div>
 
                         {/* Title + description */}
                         <div className="min-w-0">
-                            <h3 className="font-grotesk text-sm xl:text-base font-bold text-foreground truncate">
+                            <h3 className="font-grotesk text-sm xl:text-[15px] font-semibold text-foreground truncate">
                                 {module.title}
                             </h3>
                             <p className="text-xs text-(--text-secondary) font-sans line-clamp-2 mt-0.5 leading-relaxed">
@@ -84,19 +90,30 @@ const DashboardModuleCard = () => {
 
                         {/* Progress + CTA */}
                         <div>
-                            <div className="flex items-center justify-between text-xs font-sans text-(--text-secondary) mb-1.5">
-                                <span>Progress</span>
-                                <span className="font-medium text-foreground">{module.progress}%</span>
-                            </div>
-                            <Progress
-                                value={module.progress}
-                                className="h-1"
-                                indicatorColor={module.color}
-                            />
-                            <div className="mt-4 flex items-center justify-between">
-                                <p className="text-xs font-sans text-(--text-secondary)">+{module.xp}xp</p>
-                                <Button size="sm" className="rounded-lg ">
-                                    Continue
+                            {module.progress > 0 && (
+                                <>
+                                    <div className="flex items-center justify-between text-xs font-sans text-(--text-secondary) mb-1.5">
+                                        <span>Progress</span>
+                                        <span className="font-medium text-foreground">{module.progress}%</span>
+                                    </div>
+                                    <Progress
+                                        value={module.progress}
+                                        className="h-1"
+                                        indicatorColor={module.color}
+                                    />
+                                </>
+                            )}
+                            <div className={`flex items-center justify-between ${module.progress > 0 ? "mt-4" : ""}`}>
+                                <p className="text-[11px] font-sans text-(--text-tertiary)">{module.topics} topics</p>
+                                <Button
+                                    size="xs"
+                                    className="rounded-lg"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigate(`/modules/${module.slug}`)
+                                    }}
+                                >
+                                    {module.progress > 0 ? "Continue" : "Start"} <ArrowRight className="transition-transform group-hover:translate-x-0.5"/>
                                 </Button>
                             </div>
                         </div>
