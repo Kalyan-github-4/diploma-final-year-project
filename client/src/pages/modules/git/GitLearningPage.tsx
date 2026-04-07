@@ -211,11 +211,11 @@ export default function GitLearningPage() {
           return
         }
 
-        setLoadError("No AI-generated missions were returned for this level.")
+        setLoadError("Missions for this level are coming soon.")
       } catch {
         if (cancelled) return
 
-        setLoadError("Mission generation is unavailable right now. Please retry.")
+        setLoadError("Couldn't load missions. Please retry.")
       } finally {
         if (!cancelled) {
           setIsLoadingMissions(false)
