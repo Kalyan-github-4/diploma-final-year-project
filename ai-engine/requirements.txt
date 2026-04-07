@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+instructor
+openai
+pydantic
+langchain
+langchain-ollama
+langchain-chroma
+chromadb
+python-dotenv

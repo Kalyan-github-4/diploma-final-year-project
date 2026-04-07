@@ -23,4 +23,16 @@ function getDb() {
 	return { db, sqlClient }
 }
 
-module.exports = { getDb }
+async function testConnection() {
+	if (!env.databaseUrl) return false
+
+	try {
+		const { sqlClient: sql } = getDb()
+		const [row] = await sql`SELECT 1 AS ok`
+		return row?.ok === 1
+	} catch {
+		return false
+	}
+}
+
+module.exports = { getDb, testConnection }

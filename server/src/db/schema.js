@@ -48,8 +48,21 @@ const modulesTable = pgTable("modules", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 })
 
+const userProgress = pgTable("user_progress", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  moduleSlug: text("module_slug").notNull(),
+  completedLevels: jsonb("completed_levels").notNull().default([]),
+  levelXp: jsonb("level_xp").notNull().default({}),
+  totalXpEarned: integer("total_xp_earned").notNull().default(0),
+  timeSpent: jsonb("time_spent").notNull().default({}),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+})
+
 module.exports = {
   userProfiles,
   generatedMissions,
   modulesTable,
+  userProgress,
 }

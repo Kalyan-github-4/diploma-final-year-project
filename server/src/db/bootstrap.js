@@ -22,6 +22,21 @@ async function ensureDatabaseSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `)
+
+  await db.execute(sql`
+    CREATE TABLE IF NOT EXISTS user_progress (
+      id SERIAL PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      module_slug TEXT NOT NULL,
+      completed_levels JSONB NOT NULL DEFAULT '[]',
+      level_xp JSONB NOT NULL DEFAULT '{}',
+      total_xp_earned INTEGER NOT NULL DEFAULT 0,
+      time_spent JSONB NOT NULL DEFAULT '{}',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, module_slug)
+    );
+  `)
 }
 
 module.exports = { ensureDatabaseSchema }

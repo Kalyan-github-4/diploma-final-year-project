@@ -1,0 +1,306 @@
+{
+  "module": "dsa",
+  "title": "Data Structures & Algorithms",
+  "totalLevels": 6,
+  "sections": [
+    {
+      "name": "Search & Sort",
+      "difficulty": "beginner",
+      "levels": [1, 2],
+      "summary": "Foundational algorithms — binary search and bubble sort with step-by-step visualization."
+    },
+    {
+      "name": "Data Structures",
+      "difficulty": "beginner",
+      "levels": [4, 5],
+      "summary": "Core data structures — stack (LIFO) and queue (FIFO) with push/pop/enqueue/dequeue operations."
+    },
+    {
+      "name": "Graph Algorithms",
+      "difficulty": "intermediate",
+      "levels": [3, 6],
+      "summary": "Graph traversal and shortest path — BFS and Dijkstra's algorithm."
+    }
+  ],
+  "levels": {
+    "1": {
+      "title": "Binary Search Fundamentals",
+      "focus": "Understand divide-and-conquer search on sorted arrays",
+      "topic": "binary-search",
+      "teaches": ["binary search algorithm", "low/high/mid pointers", "divide-and-conquer", "O(log n) time complexity"],
+      "prerequisites": [],
+      "concepts": [
+        "Binary search only works on sorted arrays",
+        "Start with low=0 and high=length-1, calculate mid = floor((low+high)/2)",
+        "If arr[mid] === target, found it. If arr[mid] < target, search right half (low = mid+1). Otherwise search left half (high = mid-1)",
+        "Loop continues while low <= high. If loop ends, target is not in array",
+        "Each step eliminates half the remaining elements — that's why it's O(log n)",
+        "Compare to linear search O(n): for 1 million elements, binary search needs ~20 steps vs 1 million"
+      ],
+      "commonMistakes": [
+        "Forgetting the array must be sorted first",
+        "Off-by-one errors: using low < high instead of low <= high",
+        "Calculating mid as (low+high)/2 which can overflow — safer: low + (high-low)/2",
+        "Updating low = mid or high = mid instead of mid+1/mid-1 (causes infinite loop)"
+      ],
+      "realWorldScenarios": [
+        "Looking up a word in a dictionary — you open to the middle, not page 1",
+        "Finding a specific commit in git log using git bisect",
+        "Database index lookups use binary search trees internally"
+      ],
+      "referenceCode": [
+        "let low = 0",
+        "let high = arr.length - 1",
+        "while (low <= high) {",
+        "  const mid = Math.floor((low + high) / 2)",
+        "  if (arr[mid] === target) return mid",
+        "  if (arr[mid] < target) low = mid + 1",
+        "  else high = mid - 1",
+        "}",
+        "return -1"
+      ],
+      "complexity": {
+        "timeBest": "O(1)",
+        "timeAverage": "O(log n)",
+        "timeWorst": "O(log n)",
+        "space": "O(1)"
+      },
+      "successCriteria": "Student can trace binary search step-by-step and predict which half gets eliminated"
+    },
+    "2": {
+      "title": "Bubble Sort Visual Run",
+      "focus": "Understand comparison-based sorting through repeated passes",
+      "topic": "bubble-sort",
+      "teaches": ["bubble sort algorithm", "adjacent comparisons", "swap operations", "optimization with early termination"],
+      "prerequisites": ["binary-search"],
+      "concepts": [
+        "Bubble sort compares adjacent elements and swaps them if they're in the wrong order",
+        "Each pass 'bubbles' the largest unsorted element to its correct position at the end",
+        "After pass 1, the largest element is in place. After pass 2, the second largest, etc.",
+        "Optimization: if no swaps occur during a pass, the array is already sorted — stop early",
+        "Time complexity is O(n^2) — inefficient for large arrays but great for learning sorting concepts",
+        "It's a stable sort — equal elements maintain their relative order"
+      ],
+      "commonMistakes": [
+        "Forgetting that the inner loop shrinks each pass (already-sorted elements at the end)",
+        "Not implementing the early termination optimization (swapped flag)",
+        "Confusing bubble sort direction — largest bubbles to the END, not the beginning",
+        "Thinking bubble sort is efficient — it's O(n^2), only good for small/nearly-sorted arrays"
+      ],
+      "realWorldScenarios": [
+        "Sorting a hand of playing cards by repeatedly comparing adjacent cards",
+        "Understanding why O(n^2) algorithms don't scale — 10x data = 100x time",
+        "Recognizing when a nearly-sorted array makes bubble sort acceptable"
+      ],
+      "referenceCode": [
+        "function bubbleSort(arr) {",
+        "  for (let i = 0; i < arr.length - 1; i++) {",
+        "    let swapped = false",
+        "    for (let j = 0; j < arr.length - 1 - i; j++) {",
+        "      if (arr[j] > arr[j + 1]) {",
+        "        [arr[j], arr[j+1]] = [arr[j+1], arr[j]]",
+        "        swapped = true",
+        "      }",
+        "    }",
+        "    if (!swapped) break",
+        "  }",
+        "}"
+      ],
+      "complexity": {
+        "timeBest": "O(n)",
+        "timeAverage": "O(n^2)",
+        "timeWorst": "O(n^2)",
+        "space": "O(1)"
+      },
+      "successCriteria": "Student can trace each pass, predict swaps, and explain the early termination optimization"
+    },
+    "3": {
+      "title": "BFS Graph Traversal",
+      "focus": "Explore graphs level-by-level using a queue",
+      "topic": "bfs",
+      "teaches": ["breadth-first search", "queue-based traversal", "visited set", "level-order exploration"],
+      "prerequisites": ["binary-search", "queue"],
+      "concepts": [
+        "BFS explores all neighbors of a node before moving to the next level",
+        "Uses a queue (FIFO) — enqueue the start node, then dequeue and enqueue its unvisited neighbors",
+        "A visited set prevents infinite loops in cyclic graphs",
+        "BFS finds the shortest path in unweighted graphs (fewest edges)",
+        "The order of exploration depends on the order neighbors are listed",
+        "Time complexity O(V+E) — visits every vertex and edge once"
+      ],
+      "commonMistakes": [
+        "Forgetting the visited set — causes infinite loops in cyclic graphs",
+        "Adding a node to visited when dequeuing instead of when enqueuing (causes duplicates in queue)",
+        "Confusing BFS (queue) with DFS (stack/recursion)",
+        "Not understanding that BFS gives shortest path only in unweighted graphs"
+      ],
+      "realWorldScenarios": [
+        "Finding the shortest route between two subway stations",
+        "Social network — finding all friends within 2 degrees of separation",
+        "Web crawlers explore links level-by-level from a starting page"
+      ],
+      "referenceCode": [
+        "function bfs(graph, start) {",
+        "  const visited = new Set([start])",
+        "  const queue = [start]",
+        "  while (queue.length > 0) {",
+        "    const node = queue.shift()",
+        "    for (const neighbor of graph[node]) {",
+        "      if (!visited.has(neighbor)) {",
+        "        visited.add(neighbor)",
+        "        queue.push(neighbor)",
+        "      }",
+        "    }",
+        "  }",
+        "}"
+      ],
+      "complexity": {
+        "timeBest": "O(V + E)",
+        "timeAverage": "O(V + E)",
+        "timeWorst": "O(V + E)",
+        "space": "O(V)"
+      },
+      "successCriteria": "Student can trace BFS traversal order and predict the queue state at each step"
+    },
+    "4": {
+      "title": "Stack: Push & Pop",
+      "focus": "Understand LIFO data structure with push and pop operations",
+      "topic": "stack",
+      "teaches": ["stack data structure", "LIFO principle", "push operation", "pop operation", "peek/top"],
+      "prerequisites": [],
+      "concepts": [
+        "A stack follows LIFO — Last In, First Out",
+        "push(item) adds to the top, pop() removes from the top",
+        "peek/top views the top element without removing it",
+        "Think of a stack of plates — you can only add/remove from the top",
+        "The call stack in programming uses this exact structure",
+        "Common operations are all O(1) — constant time"
+      ],
+      "commonMistakes": [
+        "Popping from an empty stack (stack underflow)",
+        "Confusing LIFO (stack) with FIFO (queue)",
+        "Not checking if stack is empty before popping",
+        "Using a stack when a queue is needed (order matters!)"
+      ],
+      "realWorldScenarios": [
+        "Browser back button — each page is pushed, back button pops",
+        "Undo/redo functionality in text editors",
+        "Function call stack — nested function calls push/pop frames",
+        "Matching parentheses in code — push open, pop on close"
+      ],
+      "referenceCode": [
+        "class Stack {",
+        "  constructor() { this.items = [] }",
+        "  push(item) { this.items.push(item) }",
+        "  pop() { return this.items.pop() }",
+        "  peek() { return this.items[this.items.length - 1] }",
+        "  isEmpty() { return this.items.length === 0 }",
+        "}"
+      ],
+      "complexity": {
+        "timeBest": "O(1)",
+        "timeAverage": "O(1)",
+        "timeWorst": "O(1)",
+        "space": "O(n)"
+      },
+      "successCriteria": "Student can trace push/pop operations and predict stack state after a sequence of operations"
+    },
+    "5": {
+      "title": "Queue: Enqueue & Dequeue",
+      "focus": "Understand FIFO data structure with enqueue and dequeue operations",
+      "topic": "queue",
+      "teaches": ["queue data structure", "FIFO principle", "enqueue operation", "dequeue operation", "front/rear"],
+      "prerequisites": ["stack"],
+      "concepts": [
+        "A queue follows FIFO — First In, First Out",
+        "enqueue(item) adds to the rear, dequeue() removes from the front",
+        "front views the first element without removing it",
+        "Think of a line at a store — first person in line gets served first",
+        "BFS uses a queue to explore level-by-level",
+        "enqueue and dequeue are O(1) with a linked list implementation"
+      ],
+      "commonMistakes": [
+        "Dequeuing from an empty queue (queue underflow)",
+        "Confusing FIFO (queue) with LIFO (stack)",
+        "Using array shift() for dequeue — it's O(n), not O(1)",
+        "Not understanding that queue order is the opposite of stack order"
+      ],
+      "realWorldScenarios": [
+        "Print queue — documents print in the order they were sent",
+        "Task scheduling in operating systems — processes wait in a queue",
+        "Message queues in web apps (RabbitMQ, SQS) — process jobs in order",
+        "Customer service — first caller gets answered first"
+      ],
+      "referenceCode": [
+        "class Queue {",
+        "  constructor() { this.items = [] }",
+        "  enqueue(item) { this.items.push(item) }",
+        "  dequeue() { return this.items.shift() }",
+        "  front() { return this.items[0] }",
+        "  isEmpty() { return this.items.length === 0 }",
+        "}"
+      ],
+      "complexity": {
+        "timeBest": "O(1)",
+        "timeAverage": "O(1)",
+        "timeWorst": "O(1)",
+        "space": "O(n)"
+      },
+      "successCriteria": "Student can trace enqueue/dequeue operations and predict queue state at each step"
+    },
+    "6": {
+      "title": "Dijkstra's Shortest Path",
+      "focus": "Find shortest paths in weighted graphs using a priority queue",
+      "topic": "dijkstra",
+      "teaches": ["Dijkstra's algorithm", "weighted graphs", "priority queue", "relaxation", "shortest path"],
+      "prerequisites": ["bfs", "queue"],
+      "concepts": [
+        "Dijkstra finds the shortest path from a source to all other nodes in a weighted graph",
+        "Uses a priority queue (min-heap) to always process the closest unvisited node first",
+        "Relaxation: if going through node U to node V is shorter than the current best path to V, update it",
+        "Initialize source distance to 0, all others to infinity",
+        "Greedy approach — once a node is finalized, its shortest path won't change",
+        "Only works with non-negative edge weights"
+      ],
+      "commonMistakes": [
+        "Using Dijkstra with negative edge weights (use Bellman-Ford instead)",
+        "Forgetting to initialize all distances to infinity except the source",
+        "Not using a priority queue (using a simple array makes it O(V^2) instead of O((V+E) log V))",
+        "Confusing Dijkstra (weighted) with BFS (unweighted shortest path)"
+      ],
+      "realWorldScenarios": [
+        "GPS navigation — finding the fastest route between two locations",
+        "Network routing — packets take the shortest path through routers",
+        "Flight booking — finding the cheapest route with connections"
+      ],
+      "referenceCode": [
+        "function dijkstra(graph, source) {",
+        "  const dist = {}, visited = new Set()",
+        "  for (const node in graph) dist[node] = Infinity",
+        "  dist[source] = 0",
+        "  const pq = [[0, source]]",
+        "  while (pq.length > 0) {",
+        "    pq.sort((a,b) => a[0] - b[0])",
+        "    const [d, u] = pq.shift()",
+        "    if (visited.has(u)) continue",
+        "    visited.add(u)",
+        "    for (const [v, w] of graph[u]) {",
+        "      if (dist[u] + w < dist[v]) {",
+        "        dist[v] = dist[u] + w",
+        "        pq.push([dist[v], v])",
+        "      }",
+        "    }",
+        "  }",
+        "  return dist",
+        "}"
+      ],
+      "complexity": {
+        "timeBest": "O((V + E) log V)",
+        "timeAverage": "O((V + E) log V)",
+        "timeWorst": "O((V + E) log V)",
+        "space": "O(V)"
+      },
+      "successCriteria": "Student can trace Dijkstra step-by-step, predict relaxation updates, and explain why negative weights break it"
+    }
+  }
+}

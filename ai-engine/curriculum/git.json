@@ -1,0 +1,465 @@
+{
+  "module": "git-github",
+  "title": "Git & GitHub",
+  "totalLevels": 18,
+  "sections": [
+    {
+      "name": "Foundation",
+      "difficulty": "beginner",
+      "levels": [1, 2, 3, 4, 5, 6],
+      "summary": "Core Git mechanics — init, staging, commits, undo, and history inspection."
+    },
+    {
+      "name": "Branching Workflows",
+      "difficulty": "intermediate",
+      "levels": [7, 8, 9, 10, 11, 12],
+      "summary": "Branching, switching, merging, hotfix and release workflows."
+    },
+    {
+      "name": "History & Collaboration",
+      "difficulty": "advanced",
+      "levels": [13, 14, 15, 16, 17, 18],
+      "summary": "Rebase, conflict resolution, recovery, remotes, and PR lifecycle."
+    }
+  ],
+  "levels": {
+    "1": {
+      "title": "Repo Kickoff",
+      "focus": "Initialize repository and inspect working tree",
+      "topic": "git-basics",
+      "teaches": ["git init", "git status", "git add ."],
+      "prerequisites": [],
+      "concepts": [
+        "A repository is a folder tracked by Git",
+        "git init creates a .git directory that stores all version history",
+        "git status shows tracked, untracked, and staged files",
+        "git add stages files from working directory to staging area",
+        "The staging area is a buffer between your edits and the next commit"
+      ],
+      "commonMistakes": [
+        "Running git init inside an existing repo (nested repos)",
+        "Forgetting to stage files before committing",
+        "Not understanding the difference between working directory and staging area"
+      ],
+      "realWorldScenarios": [
+        "Starting a new project from scratch",
+        "Converting an existing folder into a Git repo",
+        "Checking what files are ready to commit"
+      ],
+      "successCriteria": "Student can initialize a repo, check status, and stage files confidently"
+    },
+    "2": {
+      "title": "Commit Hygiene",
+      "focus": "Commit hygiene and readable history",
+      "topic": "git-basics",
+      "teaches": ["git status", "git add .", "git commit -m", "git log --oneline"],
+      "prerequisites": ["git init", "git status", "git add ."],
+      "concepts": [
+        "A commit is a snapshot of your staged changes with a message",
+        "git commit -m creates a commit with an inline message",
+        "Commit messages should be short, imperative, and descriptive",
+        "git log --oneline shows compact commit history",
+        "Each commit has a unique SHA hash"
+      ],
+      "commonMistakes": [
+        "Writing vague commit messages like 'update' or 'fix'",
+        "Committing too many changes in one commit",
+        "Not checking status before committing"
+      ],
+      "realWorldScenarios": [
+        "Saving progress on a feature before taking a break",
+        "Creating atomic commits for easy code review",
+        "Reviewing what was done yesterday via log"
+      ],
+      "successCriteria": "Student writes clean commits with good messages and reads history"
+    },
+    "3": {
+      "title": "Staging Mastery",
+      "focus": "Staging and restoring safely",
+      "topic": "git-basics",
+      "teaches": ["git add .", "git status", "git restore"],
+      "prerequisites": ["git init", "git status", "git add .", "git commit -m"],
+      "concepts": [
+        "git restore discards changes in working directory",
+        "git restore --staged unstages files without losing edits",
+        "You can selectively stage files instead of using git add .",
+        "The staging area lets you craft commits precisely"
+      ],
+      "commonMistakes": [
+        "Using git restore when they meant git restore --staged",
+        "Accidentally discarding changes they wanted to keep",
+        "Not understanding the difference between unstaging and discarding"
+      ],
+      "realWorldScenarios": [
+        "Accidentally editing the wrong file and need to undo",
+        "Staged too many files and need to unstage some",
+        "Experimenting with code and deciding to throw it away"
+      ],
+      "successCriteria": "Student can stage, unstage, and discard changes deliberately"
+    },
+    "4": {
+      "title": "Debug with Log",
+      "focus": "Investigate changes with log and diff",
+      "topic": "git-basics",
+      "teaches": ["git log --oneline", "git diff", "git status"],
+      "prerequisites": ["git add .", "git commit -m", "git log --oneline"],
+      "concepts": [
+        "git diff shows line-by-line changes between working directory and staging",
+        "git diff --staged shows what's about to be committed",
+        "git log can be filtered by author, date, file, and search string",
+        "Reading diffs is a core debugging skill"
+      ],
+      "commonMistakes": [
+        "Confusing git diff (unstaged) with git diff --staged",
+        "Not reading the full diff before committing",
+        "Ignoring the context lines in diffs"
+      ],
+      "realWorldScenarios": [
+        "Reviewing your own changes before pushing",
+        "Finding when a bug was introduced by reading log",
+        "Checking what changed in a specific file"
+      ],
+      "successCriteria": "Student can inspect changes and history to understand what happened"
+    },
+    "5": {
+      "title": "Safe Undo",
+      "focus": "Undo local mistakes safely",
+      "topic": "git-basics",
+      "teaches": ["git status", "git restore", "git reset --soft"],
+      "prerequisites": ["git add .", "git commit -m", "git restore"],
+      "concepts": [
+        "git reset --soft HEAD~1 undoes the last commit but keeps changes staged",
+        "git reset --mixed HEAD~1 undoes commit and unstages (default reset)",
+        "git restore discards working directory changes",
+        "These are safe local operations that don't affect remote"
+      ],
+      "commonMistakes": [
+        "Using git reset --hard when they meant --soft (loses changes!)",
+        "Confusing reset with revert (reset rewrites history, revert creates new commit)",
+        "Not understanding HEAD~1 notation"
+      ],
+      "realWorldScenarios": [
+        "Committed with a typo in the message",
+        "Committed the wrong files and need to redo",
+        "Want to squash the last few commits into one"
+      ],
+      "successCriteria": "Student can undo commits and changes without losing work"
+    },
+    "6": {
+      "title": "Team-Ready Basics",
+      "focus": "Produce clean team-ready commits",
+      "topic": "git-basics",
+      "teaches": ["git add .", "git commit -m", "git log --oneline"],
+      "prerequisites": ["git status", "git add .", "git commit -m", "git log --oneline", "git restore", "git reset --soft"],
+      "concepts": [
+        "Atomic commits contain one logical change each",
+        "Commit messages follow conventions: imperative mood, 50 char subject",
+        "Clean history makes code review and debugging easier",
+        "Reviewing your own log before pushing catches mistakes"
+      ],
+      "commonMistakes": [
+        "Mixing unrelated changes in one commit",
+        "Not reviewing staged changes before committing",
+        "Pushing without checking history first"
+      ],
+      "realWorldScenarios": [
+        "Preparing a feature branch for team review",
+        "Writing commits a teammate can understand 6 months later",
+        "Cleaning up messy local history before sharing"
+      ],
+      "successCriteria": "Student produces professional-quality commits ready for team collaboration"
+    },
+    "7": {
+      "title": "Feature Branch Start",
+      "focus": "Start isolated feature development",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout -b", "git add .", "git commit -m"],
+      "prerequisites": ["git status", "git add .", "git commit -m", "git log --oneline"],
+      "concepts": [
+        "Branches are lightweight pointers to commits",
+        "git checkout -b creates and switches to a new branch in one step",
+        "Feature branches isolate work from main",
+        "Each branch has its own commit history diverging from the branch point"
+      ],
+      "commonMistakes": [
+        "Creating a branch but forgetting to switch to it",
+        "Working on main instead of the feature branch",
+        "Not committing before switching branches"
+      ],
+      "realWorldScenarios": [
+        "Starting work on a new feature without breaking the stable codebase",
+        "Isolating experimental changes from production code",
+        "Working on a bug fix while a feature is in progress"
+      ],
+      "successCriteria": "Student can create, switch to, and commit on a feature branch"
+    },
+    "8": {
+      "title": "Parallel Workstreams",
+      "focus": "Switch between parallel branches",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout -b", "git checkout", "git status"],
+      "prerequisites": ["git checkout -b", "git add .", "git commit -m"],
+      "concepts": [
+        "You can have multiple branches active simultaneously",
+        "git checkout switches between existing branches",
+        "Always commit or stash before switching to avoid conflicts",
+        "git branch lists all local branches"
+      ],
+      "commonMistakes": [
+        "Switching branches with uncommitted changes",
+        "Losing track of which branch you're on",
+        "Creating duplicate branches by accident"
+      ],
+      "realWorldScenarios": [
+        "Switching from a feature to fix an urgent bug, then switching back",
+        "Managing work across multiple tickets simultaneously",
+        "Reviewing a colleague's branch locally"
+      ],
+      "successCriteria": "Student can juggle multiple branches cleanly without losing work"
+    },
+    "9": {
+      "title": "Fast-Forward Merge",
+      "focus": "Fast-forward merge workflows",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout main", "git merge", "git log --oneline"],
+      "prerequisites": ["git checkout -b", "git checkout", "git commit -m"],
+      "concepts": [
+        "A fast-forward merge moves the branch pointer forward without a merge commit",
+        "Fast-forward happens when the target branch has no new commits since branching",
+        "git merge integrates one branch's changes into the current branch",
+        "After merging, the feature branch can be safely deleted"
+      ],
+      "commonMistakes": [
+        "Merging from the wrong branch direction",
+        "Forgetting to switch to main before merging",
+        "Not checking log after merge to verify the result"
+      ],
+      "realWorldScenarios": [
+        "Merging a completed feature back into main",
+        "Integrating a quick hotfix developed in isolation",
+        "Cleaning up after a successful code review"
+      ],
+      "successCriteria": "Student understands and can perform fast-forward merges correctly"
+    },
+    "10": {
+      "title": "Release Branch Drill",
+      "focus": "Release and hotfix branch workflow",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout -b hotfix", "git commit -m", "git merge"],
+      "prerequisites": ["git checkout -b", "git checkout", "git merge"],
+      "concepts": [
+        "Hotfix branches branch from main for urgent production fixes",
+        "Release branches stabilize code before deployment",
+        "Hotfixes get merged back to both main and develop",
+        "Branch naming conventions: hotfix/*, release/*, feature/*"
+      ],
+      "commonMistakes": [
+        "Branching hotfix from develop instead of main",
+        "Forgetting to merge hotfix back into develop",
+        "Mixing feature work into a hotfix branch"
+      ],
+      "realWorldScenarios": [
+        "Production is broken — ship a fix in 30 minutes",
+        "Preparing a release while feature development continues",
+        "Managing parallel release and hotfix timelines"
+      ],
+      "successCriteria": "Student can execute hotfix and release branch workflows"
+    },
+    "11": {
+      "title": "Branch Policy",
+      "focus": "Branch policy and review prep",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout -b", "git commit -m", "git log --oneline"],
+      "prerequisites": ["git checkout -b", "git checkout", "git merge", "git log --oneline"],
+      "concepts": [
+        "Branch naming conventions make repos navigable (feature/, bugfix/, hotfix/)",
+        "Protected branches prevent direct pushes to main",
+        "Review-ready branches have clean, atomic commits",
+        "Squashing messy commits before review improves readability"
+      ],
+      "commonMistakes": [
+        "Inconsistent branch naming across a team",
+        "Pushing directly to main instead of using feature branches",
+        "Leaving debug commits in a review branch"
+      ],
+      "realWorldScenarios": [
+        "Setting up branch protection rules for a team repo",
+        "Preparing a branch for pull request review",
+        "Enforcing naming conventions in a CI pipeline"
+      ],
+      "successCriteria": "Student follows professional branching conventions"
+    },
+    "12": {
+      "title": "Integration Readiness",
+      "focus": "Integration readiness before merge",
+      "topic": "branching-workflows",
+      "teaches": ["git checkout main", "git merge", "git status"],
+      "prerequisites": ["git checkout -b", "git checkout", "git merge", "git log --oneline"],
+      "concepts": [
+        "Always pull latest main before merging to avoid conflicts",
+        "Test your branch against latest main before creating a PR",
+        "git status after merge confirms clean state",
+        "Integration testing catches issues that unit tests miss"
+      ],
+      "commonMistakes": [
+        "Merging into an outdated main branch",
+        "Not testing after merge to catch integration issues",
+        "Ignoring merge conflicts and hoping for the best"
+      ],
+      "realWorldScenarios": [
+        "Syncing your feature branch with latest main before review",
+        "Resolving issues found during integration testing",
+        "Final checks before a deployment merge"
+      ],
+      "successCriteria": "Student can verify integration readiness and merge confidently"
+    },
+    "13": {
+      "title": "Rebase Control",
+      "focus": "Linear history with rebase",
+      "topic": "merge-and-history",
+      "teaches": ["git rebase", "git log --oneline", "git checkout main"],
+      "prerequisites": ["git checkout -b", "git checkout", "git merge", "git log --oneline"],
+      "concepts": [
+        "Rebase replays your commits on top of another branch's latest commit",
+        "Produces linear history without merge commits",
+        "git rebase main while on feature branch moves feature commits ahead",
+        "Never rebase commits that have been pushed to a shared branch"
+      ],
+      "commonMistakes": [
+        "Rebasing a public/shared branch (rewrites history others depend on)",
+        "Confusing rebase with merge — rebase rewrites, merge preserves",
+        "Not understanding that rebase changes commit SHAs"
+      ],
+      "realWorldScenarios": [
+        "Cleaning up a feature branch before PR for linear history",
+        "Updating a feature branch with latest main without merge commits",
+        "Keeping a clean git log for projects that require linear history"
+      ],
+      "successCriteria": "Student can rebase and understands when NOT to rebase"
+    },
+    "14": {
+      "title": "Conflict Surgery",
+      "focus": "Resolve merge conflicts correctly",
+      "topic": "merge-and-history",
+      "teaches": ["git merge", "git status", "git merge --abort"],
+      "prerequisites": ["git checkout -b", "git merge", "git rebase"],
+      "concepts": [
+        "Conflicts happen when two branches modify the same lines",
+        "Git marks conflicts with <<<<<<<, =======, and >>>>>>> markers",
+        "git status shows which files have conflicts",
+        "git merge --abort cancels the merge and returns to pre-merge state",
+        "After resolving, git add the files and git commit to complete"
+      ],
+      "commonMistakes": [
+        "Accepting one side blindly without understanding both changes",
+        "Leaving conflict markers in the code",
+        "Panicking and using git merge --abort when the conflict is simple"
+      ],
+      "realWorldScenarios": [
+        "Two developers edited the same config file",
+        "Merging a long-running feature branch that diverged significantly",
+        "Resolving conflicts during a rebase"
+      ],
+      "successCriteria": "Student can identify, understand, and resolve merge conflicts"
+    },
+    "15": {
+      "title": "Recovery Toolkit",
+      "focus": "Recovery toolkit for production safety",
+      "topic": "merge-and-history",
+      "teaches": ["git revert", "git reflog", "git log --oneline"],
+      "prerequisites": ["git commit -m", "git log --oneline", "git merge", "git reset --soft"],
+      "concepts": [
+        "git revert creates a new commit that undoes a previous commit safely",
+        "git reflog shows every HEAD movement — your safety net",
+        "reflog lets you find lost commits after a bad reset or rebase",
+        "revert vs reset: revert is safe for shared history, reset rewrites it"
+      ],
+      "commonMistakes": [
+        "Using reset on shared branches instead of revert",
+        "Not knowing reflog exists when they think commits are lost",
+        "Reverting a merge commit without specifying the parent"
+      ],
+      "realWorldScenarios": [
+        "A bad commit was pushed to main and needs to be undone safely",
+        "Accidentally ran git reset --hard and need to recover",
+        "Rolling back a deployment without rewriting history"
+      ],
+      "successCriteria": "Student can recover from mistakes using revert and reflog"
+    },
+    "16": {
+      "title": "Remote Sync Master",
+      "focus": "Remote synchronization and tracking",
+      "topic": "advanced-collaboration",
+      "teaches": ["git fetch origin", "git pull origin main", "git push -u origin"],
+      "prerequisites": ["git commit -m", "git checkout -b", "git merge", "git log --oneline"],
+      "concepts": [
+        "git fetch downloads remote changes without merging",
+        "git pull = git fetch + git merge",
+        "git push -u origin sets upstream tracking for the branch",
+        "origin is the default name for your remote repository",
+        "Tracking branches let git pull/push know where to sync"
+      ],
+      "commonMistakes": [
+        "Pushing without pulling first (causes rejected push)",
+        "Confusing fetch with pull (fetch doesn't change your files)",
+        "Not setting upstream with -u on first push"
+      ],
+      "realWorldScenarios": [
+        "Syncing your local repo with GitHub every morning",
+        "Pushing a new feature branch for the first time",
+        "Pulling teammate's changes before starting work"
+      ],
+      "successCriteria": "Student can sync with remote repos using fetch, pull, and push"
+    },
+    "17": {
+      "title": "PR Command Center",
+      "focus": "End-to-end pull request lifecycle",
+      "topic": "advanced-collaboration",
+      "teaches": ["git pr create", "git pr checks", "git pr review approve", "git pr merge --squash"],
+      "prerequisites": ["git push -u origin", "git fetch origin", "git checkout -b", "git merge"],
+      "concepts": [
+        "Pull requests are the standard way to propose changes on GitHub",
+        "PRs include description, reviewers, labels, and linked issues",
+        "CI checks run automatically on PR branches",
+        "Squash merge combines all PR commits into one clean commit on main",
+        "Review approval is required before merging in protected repos"
+      ],
+      "commonMistakes": [
+        "Creating PRs without descriptions",
+        "Merging without waiting for CI checks to pass",
+        "Not responding to review comments before merging"
+      ],
+      "realWorldScenarios": [
+        "Creating a PR for a completed feature with description and reviewers",
+        "Responding to code review feedback and pushing fixes",
+        "Squash merging after approval for clean main history"
+      ],
+      "successCriteria": "Student can manage the full PR lifecycle from creation to merge"
+    },
+    "18": {
+      "title": "Git & GitHub King",
+      "focus": "Full incident response workflow",
+      "topic": "advanced-collaboration",
+      "teaches": ["git fetch origin", "git rebase", "git pr create", "git pr merge --squash"],
+      "prerequisites": ["git fetch origin", "git pull origin main", "git push -u origin", "git rebase", "git pr create", "git pr merge --squash"],
+      "concepts": [
+        "Incident response requires fast, clean Git workflows",
+        "Fetch latest, create hotfix branch, fix, rebase, PR, squash merge",
+        "Every step must be deliberate — production stability depends on it",
+        "Combine all skills: branching, rebasing, PRs, and clean history",
+        "This is the real-world Git workflow used at production companies"
+      ],
+      "commonMistakes": [
+        "Panicking and pushing directly to main",
+        "Skipping the PR process during an incident",
+        "Not rebasing before creating the PR"
+      ],
+      "realWorldScenarios": [
+        "Production is down — execute the full incident response workflow",
+        "Critical security patch needs to ship in under an hour",
+        "Coordinating a hotfix with a team under time pressure"
+      ],
+      "successCriteria": "Student can execute a full incident response Git workflow under pressure"
+    }
+  }
+}

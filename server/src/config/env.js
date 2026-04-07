@@ -18,8 +18,9 @@ const env = {
   aiRetryBaseDelayMs: toInt(process.env.AI_RETRY_BASE_DELAY_MS, 700),
   openAiApiKey: process.env.OPENAI_API_KEY || "",
   openAiModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-  ollamaModel: process.env.OLLAMA_MODEL || "phi3:mini",
+  ollamaModel: process.env.OLLAMA_MODEL || "qwen2.5:7b",
   ollamaApiUrl: process.env.OLLAMA_API_URL || "http://localhost:11434",
+  aiEngineUrl: process.env.AI_ENGINE_URL || "http://localhost:8000",
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
 }
 
