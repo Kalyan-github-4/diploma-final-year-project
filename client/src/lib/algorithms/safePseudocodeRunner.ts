@@ -49,7 +49,8 @@ function createBinarySnapshot(
   low: number,
   high: number,
   mid: number | null,
-  foundIndex: number | null
+  foundIndex: number | null,
+  checkedIndices: number[]
 ): BinarySearchSnapshot {
   const focusIndices = [low, high, mid]
     .filter((value): value is number => value !== null)
@@ -63,6 +64,7 @@ function createBinarySnapshot(
     mid,
     focusIndices,
     foundIndex,
+    checkedIndices: [...checkedIndices],
   }
 }
 
@@ -364,6 +366,7 @@ export function runSafeBinarySearchPseudocode({ source, array, target }: RunBina
   let high = array.length - 1
   let mid: number | null = null
   let foundIndex: number | null = null
+  const checkedIndices: number[] = []
 
   const steps: BinarySearchStep[] = []
   let pc = 0
@@ -377,13 +380,22 @@ export function runSafeBinarySearchPseudocode({ source, array, target }: RunBina
     currentMid: number | null,
     currentFoundIndex: number | null
   ) => {
+    if (
+      currentMid !== null &&
+      currentMid >= 0 &&
+      currentMid < array.length &&
+      !checkedIndices.includes(currentMid)
+    ) {
+      checkedIndices.push(currentMid)
+    }
+
     steps.push({
       id: `binary-custom-step-${steps.length + 1}`,
       algorithm: "binary-search",
       type,
       description,
       codeLine,
-      snapshot: createBinarySnapshot(array, target, low, high, currentMid, currentFoundIndex),
+      snapshot: createBinarySnapshot(array, target, low, high, currentMid, currentFoundIndex, checkedIndices),
     })
   }
 

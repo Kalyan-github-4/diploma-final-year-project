@@ -1,12 +1,3 @@
-import {
-  GitFork,
-  Network,
-  Terminal,
-  Bug,
-  LayoutGrid
-} from "lucide-react"
-
-// import { GitBranch } from "@phosphor-icons/react"
 import type { ModuleCardProps } from "./ModuleCard"
 
 export const modules: ModuleCardProps[] = [
@@ -17,9 +8,8 @@ export const modules: ModuleCardProps[] = [
     progress: 60,
     topics: 12,
     xp: 3500,
-    level: "INTERMEDIATE",
     status: "in-progress",
-    icon: <GitFork size={22} />,
+    image: "/vite.svg",
     color: "#F97316",
     link: "/modules/git"
   },
@@ -30,9 +20,8 @@ export const modules: ModuleCardProps[] = [
     progress: 0,
     topics: 12,
     xp: 1230,
-    level: "INTERMEDIATE",
     status: "not-started",
-    icon: <LayoutGrid size={22} />,
+    image: "/vite.svg",
     color: "#06B6D4",
     link: "/modules/css-layout"
   },
@@ -43,9 +32,8 @@ export const modules: ModuleCardProps[] = [
     progress: 15,
     topics: 24,
     xp: 1000,
-    level: "ADVANCED",
     status: "in-progress",
-    icon: <Network size={22} />,
+    image: "/vite.svg",
     color: "#3B82F6"
   },
 
@@ -56,9 +44,8 @@ export const modules: ModuleCardProps[] = [
     progress: 30,
     topics: 5,
     xp: 200,
-    level: "BEGINNER",
     status: "not-started",
-    icon: <Terminal size={22} />,
+    image: "/vite.svg",
     color: "#8B5CF6"
   },
   {
@@ -68,9 +55,8 @@ export const modules: ModuleCardProps[] = [
     progress: 0,
     topics: 10,
     xp: 450,
-    level: "ADVANCED",
     status: "locked",
-    icon: <Bug size={22} />,
+    image: "/vite.svg",
     color: "#64748B"
   }
 ]
