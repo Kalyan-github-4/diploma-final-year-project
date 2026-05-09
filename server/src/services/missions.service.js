@@ -17,8 +17,7 @@ async function upsertUserProfile(/* { userId, level } */) {
 }
 
 async function replaceUserMissionBatch({ level }) {
-  // Returns [] for levels that haven't been authored yet (7-18 pending).
-  // The client surfaces this as a friendly "missions coming soon" state.
+  // Returns deterministic, hand-authored missions for every supported level.
   return getStaticGitMissions(level) || []
 }
 

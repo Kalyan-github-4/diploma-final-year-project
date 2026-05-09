@@ -1,19 +1,12 @@
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import GitGraph from "@/pages/modules/git/git-and-gitHub/GitGraph"
 import Terminal from "@/pages/modules/git/git-and-gitHub/Terminal"
 import type { TerminalEntry } from "@/pages/modules/git/git-and-gitHub/Terminal"
-import { processCommand } from "@/lib/gitSimulator"
-import type { GitState } from "@/lib/gitSimulator"
+import { runGitCommand } from "@/lib/realGit/commandRouter"
+import { buildSnapshot, emptySnapshot } from "@/lib/realGit/snapshot"
+import { createRepo } from "@/lib/realGit/createRepo"
+import type { Snapshot, RepoContext } from "@/lib/realGit/types"
 import { RotateCcw, Camera, CheckCheck } from "lucide-react"
-
-const EMPTY_STATE: GitState = {
-  commits: {},
-  branches: {},
-  HEAD: { type: "branch", ref: "main" },
-  staging: [],
-  workingDir: [{ name: "README.md", status: "modified" }],
-  initialized: false,
-}
 
 const WELCOME_ENTRY: TerminalEntry = {
   type: "output",
@@ -22,7 +15,10 @@ const WELCOME_ENTRY: TerminalEntry = {
 }
 
 export default function GitSandbox() {
-  const [gitState, setGitState] = useState<GitState>(EMPTY_STATE)
+  const [snapshot, setSnapshot] = useState<Snapshot>(() => emptySnapshot())
+  const repoCtxRef = useRef<RepoContext | null>(null)
+  const [initialized, setInitialized] = useState(false)
+  
   const [terminalHistory, setTerminalHistory] = useState<TerminalEntry[]>([WELCOME_ENTRY])
   const [inputValue, setInputValue] = useState("")
   const [newCommitId, setNewCommitId] = useState<string | null>(null)
@@ -30,10 +26,23 @@ export default function GitSandbox() {
   const snapshotTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const currentBranch =
-    gitState.HEAD.type === "branch" ? gitState.HEAD.ref : "HEAD"
+    snapshot.HEAD.type === "branch" ? snapshot.HEAD.ref : "HEAD"
+
+  const initRepo = useCallback(async () => {
+    const ctx = await createRepo("sandbox")
+    repoCtxRef.current = ctx
+    const snap = await buildSnapshot(ctx)
+    setSnapshot(snap)
+  }, [])
+
+  useEffect(() => {
+    initRepo()
+  }, [initRepo])
 
   /* ─── Submit command ─── */
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
+    const ctx = repoCtxRef.current
+    if (!ctx) return
     const cmd = inputValue.trim()
     if (!cmd) return
 
@@ -42,64 +51,58 @@ export default function GitSandbox() {
       { type: "command", text: cmd, branch: currentBranch },
     ])
 
-    const result = processCommand(cmd, gitState)
+    const result = await runGitCommand(cmd, ctx)
+    // sandbox initializes implicitly when init is called
+    if (cmd.startsWith("init") || cmd.startsWith("git init")) {
+        setInitialized(true)
+    }
 
     if (result.output) {
-      const isError =
-        result.output.includes("fatal:") ||
-        result.output.includes("error:") ||
-        result.output.includes("command not found")
-      const isSuccess =
-        result.output.includes("Initialized") ||
-        result.output.includes("Switched") ||
-        result.output.includes("Fast-forward") ||
-        result.output.includes("branch")
-
       setTerminalHistory((prev) => [
         ...prev,
         {
           type: "output",
           text: result.output,
-          outputType: isError ? "error" : isSuccess ? "success" : "normal",
+          outputType: result.outputType,
         },
       ])
     }
 
-    setGitState(result.newState)
+    const prevCommitIds = new Set(Object.keys(snapshot.commits))
+    const nextSnap = await buildSnapshot(ctx)
+    setSnapshot(nextSnap)
 
-    if (result.graphChanged) {
-      const newIds = Object.keys(result.newState.commits).filter(
-        (id) => !gitState.commits[id]
-      )
-      if (newIds.length > 0) {
-        setNewCommitId(newIds[0])
-        setTimeout(() => setNewCommitId(null), 500)
-      }
+    const newIds = Object.keys(nextSnap.commits).filter((id) => !prevCommitIds.has(id))
+    if (newIds.length > 0) {
+      setNewCommitId(newIds[0])
+      setTimeout(() => setNewCommitId(null), 500)
     }
 
     setInputValue("")
-  }, [inputValue, gitState, currentBranch])
+  }, [inputValue, currentBranch, snapshot.commits])
 
   /* ─── Reset repository ─── */
   const handleReset = useCallback(() => {
-    setGitState(EMPTY_STATE)
-    setTerminalHistory([
-      WELCOME_ENTRY,
-      { type: "output", text: "— Repository reset. Fresh start! —\n", outputType: "success" },
-    ])
-    setInputValue("")
-    setNewCommitId(null)
-  }, [])
+    initRepo().then(() => {
+      setInitialized(false)
+      setTerminalHistory([
+        WELCOME_ENTRY,
+        { type: "output", text: "— Repository reset. Fresh start! —\n", outputType: "success" },
+      ])
+      setInputValue("")
+      setNewCommitId(null)
+    })
+  }, [initRepo])
 
   /* ─── Save snapshot (copy JSON to clipboard) ─── */
   const handleSaveSnapshot = useCallback(() => {
-    const snapshot = {
+    const data = {
       version: 1,
       savedAt: new Date().toISOString(),
-      gitState,
+      snapshot,
     }
 
-    navigator.clipboard.writeText(JSON.stringify(snapshot, null, 2)).then(
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2)).then(
       () => {
         if (snapshotTimerRef.current) clearTimeout(snapshotTimerRef.current)
         setSnapshotStatus("copied")
@@ -111,7 +114,7 @@ export default function GitSandbox() {
         snapshotTimerRef.current = setTimeout(() => setSnapshotStatus("idle"), 3000)
       }
     )
-  }, [gitState])
+  }, [snapshot])
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-(--bg-elevated,#141414)">
@@ -121,14 +124,14 @@ export default function GitSandbox() {
           <span className="inline-flex items-center gap-2 font-mono text-xs">
             <span className="size-2 shrink-0 rounded-full bg-(--success,#22C55E)" />
             <span className="text-(--text-secondary)">~/sandbox</span>
-            {gitState.initialized && (
+            {initialized && (
               <span className="rounded-full border border-[rgba(99,102,241,0.3)] bg-[rgba(99,102,241,0.15)] px-2.5 py-0.5 text-[11px] text-(--accent,#6366F1)">
                 {currentBranch}
               </span>
             )}
-            {!gitState.initialized && (
+            {!initialized && (
               <span className="rounded-full border border-border bg-white/5 px-2.5 py-0.5 text-[11px] text-(--text-tertiary)">
-                run `git init` to start
+                run \`git init\` to start
               </span>
             )}
           </span>
@@ -176,7 +179,7 @@ export default function GitSandbox() {
       {/* Graph + Terminal */}
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex min-h-0 overflow-hidden" style={{ flex: "55 1 0%" }}>
-          <GitGraph gitState={gitState} newCommitId={newCommitId} />
+          <GitGraph gitState={snapshot} newCommitId={newCommitId} />
         </div>
         <div className="flex min-h-0 overflow-hidden" style={{ flex: "45 1 0%" }}>
           <Terminal

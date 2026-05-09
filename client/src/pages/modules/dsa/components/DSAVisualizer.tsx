@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import type { BinarySearchSnapshot, BubbleSortSnapshot, BFSSnapshot, DijkstraSnapshot, DSAAlgorithm, DSAStep, StackSnapshot, QueueSnapshot, StepQuestion } from "@/types/dsa.types"
+import type { BinarySearchSnapshot, BubbleSortSnapshot, BFSSnapshot, DijkstraSnapshot, DSAAlgorithm, DSAStep, StackSnapshot, QueueSnapshot, QuickSortSnapshot, StepQuestion } from "@/types/dsa.types"
 import { BFSVisualizer } from "./BFSVisualizer"
 import { StackVisualizer } from "./StackVisualizer"
 import { QueueVisualizer } from "./QueueVisualizer"
@@ -32,12 +32,64 @@ export function DSAVisualizer({
   const isStackMode = algorithm === "stack"
   const isQueueMode = algorithm === "queue"
   const isDijkstraMode = algorithm === "dijkstra"
+  const isQuickSortMode = algorithm === "quick-sort"
 
   return (
     <div
       className={`relative flex items-center justify-center overflow-auto rounded-xl border border-(--card-border) bg-card p-3 ${predictOverlayResult === "correct" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--success)_42%,transparent)]" : ""} ${predictOverlayResult === "wrong" ? "shadow-[0_0_0_2px_color-mix(in_oklab,var(--danger)_42%,transparent)]" : ""}`}
     >
-      {isGraphMode ? (
+      {isQuickSortMode ? (
+        (() => {
+          const snap = currentStep.snapshot as QuickSortSnapshot
+          return (
+            <div className="flex flex-col items-center gap-4 w-full py-2">
+              <div className="flex items-end gap-3 flex-wrap justify-center">
+                {snap.array.map((value, index) => {
+                  const isPivot = snap.pivotIndex === index
+                  const isCompare = snap.compareIndex === index
+                  const isSorted = snap.sortedIndices.includes(index)
+                  const inRange = snap.activeRange !== null && index >= snap.activeRange[0] && index <= snap.activeRange[1]
+                  const isInactive = snap.activeRange !== null && !inRange && !isSorted
+                  return (
+                    <div key={index} className="flex flex-col items-center gap-2">
+                      <span className="text-[11px] font-mono text-(--text-tertiary)">{index}</span>
+                      <motion.div
+                        animate={{ scale: isPivot ? 1.1 : isCompare ? 1.05 : 1, y: isPivot ? -5 : isCompare ? -3 : 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        className={[
+                          "flex h-14 w-14 items-center justify-center rounded-2xl border text-xl font-bold transition-colors duration-200",
+                          isSorted
+                            ? "border-[color-mix(in_oklab,var(--success)_55%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--success)_94%,var(--bg-surface))] text-white"
+                            : isPivot
+                              ? "border-[#F59E0B]/70 bg-[#F59E0B]/12 text-[#F59E0B] shadow-[0_4px_24px_rgba(245,158,11,0.2)]"
+                              : isCompare
+                                ? "border-[color-mix(in_oklab,var(--accent)_45%,var(--border-subtle))] bg-[color-mix(in_oklab,var(--accent)_24%,var(--bg-surface))] text-(--accent)"
+                                : isInactive
+                                  ? "border-border/40 bg-(--bg-elevated)/40 text-(--text-tertiary) opacity-50"
+                                  : "border-border bg-(--bg-surface) text-foreground",
+                        ].join(" ")}
+                      >
+                        {value}
+                      </motion.div>
+                      <div className="min-h-5 flex flex-col items-center gap-0.5">
+                        {isPivot && <em className="rounded-md bg-[#F59E0B]/10 px-1.5 py-0.5 text-[10px] font-bold not-italic text-[#F59E0B]">pivot</em>}
+                        {isCompare && !isPivot && <em className="rounded-md bg-(--accent)/10 px-1.5 py-0.5 text-[10px] font-bold not-italic text-(--accent)">cmp</em>}
+                        {isSorted && !isPivot && <em className="rounded-full bg-(--bg-elevated) px-1.5 py-px text-[10px] not-italic text-white">done</em>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              {snap.activeRange && (
+                <p className="text-[11px] font-mono text-(--text-tertiary)">
+                  partition [{snap.activeRange[0]}..{snap.activeRange[1]}]
+                  {snap.pivotIndex !== null ? ` · pivot = ${snap.array[snap.pivotIndex]}` : ""}
+                </p>
+              )}
+            </div>
+          )
+        })()
+      ) : isGraphMode ? (
         <BFSVisualizer snapshot={currentStep.snapshot as BFSSnapshot} />
       ) : isDijkstraMode ? (
         <DijkstraVisualizer snapshot={currentStep.snapshot as DijkstraSnapshot} />

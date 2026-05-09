@@ -1,4 +1,4 @@
-const { generateAIReply, streamAIReply, generateDSAQuestions } = require("../services/ai.service")
+const { generateAIReply, streamAIReply, generateDSAQuestions, synthesizeSpeech } = require("../services/ai.service")
 
 // ─── Chat (non-streaming) ─────────────────────────────────────────────────────
 
@@ -96,4 +96,48 @@ const generateDSAQuestionsController = async (req, res) => {
     }
 }
 
-module.exports = { chatWithAI, streamChatWithAI, generateDSAQuestionsController }
+const textToSpeechController = async (req, res) => {
+    try {
+        const { input, voice, model, response_format } = req.body || {}
+
+        if (!input || typeof input !== "string") {
+            return res.status(400).json({ error: "input text is required" })
+        }
+
+        const { contentType, audioBuffer } = await synthesizeSpeech({
+            input,
+            voice: typeof voice === "string" && voice.trim() ? voice : "af_heart",
+            model: typeof model === "string" && model.trim() ? model : "kokoro",
+            response_format: typeof response_format === "string" && response_format.trim() ? response_format : "mp3",
+        })
+
+        res.setHeader("Content-Type", contentType)
+        res.setHeader("Cache-Control", "no-store")
+        return res.status(200).send(audioBuffer)
+    } catch (error) {
+        const msg = error?.message || "Failed to synthesize speech"
+        return res.status(502).json({ error: "TTS failed", message: msg })
+    }
+}
+
+const healthCheckController = async (_req, res) => {
+    const { getOllamaBaseCandidates } = require("../services/ai.service")
+    const candidates = getOllamaBaseCandidates()
+    const results = await Promise.all(
+        candidates.map(async (baseUrl) => {
+            try {
+                const r = await fetch(`${baseUrl}/api/tags`, { signal: AbortSignal.timeout(4000) })
+                if (!r.ok) return { url: baseUrl, status: "error", detail: `HTTP ${r.status}` }
+                const data = await r.json()
+                const models = (data.models || []).map((m) => m.name)
+                return { url: baseUrl, status: "ok", models }
+            } catch (err) {
+                return { url: baseUrl, status: "unreachable", detail: err.message }
+            }
+        })
+    )
+    const reachable = results.find((r) => r.status === "ok")
+    return res.status(reachable ? 200 : 503).json({ ollama: results })
+}
+
+module.exports = { chatWithAI, streamChatWithAI, generateDSAQuestionsController, textToSpeechController, healthCheckController }

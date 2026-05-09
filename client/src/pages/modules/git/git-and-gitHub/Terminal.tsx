@@ -33,15 +33,15 @@ export default function Terminal({
   }, [history])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[var(--terminal-bg,#0A0A0A)]">
+    <div className="flex min-h-0 flex-1 flex-col bg-(--terminal-bg,#0A0A0A)">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] bg-white/[0.02] px-4 py-2.5">
+      <div className="flex items-center gap-2 border-b border-border bg-white/2 px-4 py-2.5">
         <div className="flex gap-1.5">
-          <span className="size-2.5 rounded-full bg-[var(--danger)]" />
-          <span className="size-2.5 rounded-full bg-[var(--warning)]" />
-          <span className="size-2.5 rounded-full bg-[var(--success)]" />
+          <span className="size-2.5 rounded-full bg-(--danger)" />
+          <span className="size-2.5 rounded-full bg-(--warning)" />
+          <span className="size-2.5 rounded-full bg-(--success)" />
         </div>
-        <span className="ml-2 font-mono text-xs text-[var(--text-tertiary)]">bash — 80×24</span>
+        <span className="ml-2 font-mono text-xs text-(--text-tertiary)">bash — 80×24</span>
       </div>
 
       {/* Body */}
@@ -50,13 +50,13 @@ export default function Terminal({
           if (entry.type === "command") {
             return (
               <div key={i} className="break-all whitespace-pre-wrap">
-                <span className="text-[var(--success,#22C55E)]">user@codeking</span>
-                <span className="text-[var(--text-secondary)]">&nbsp;~/repo</span>
-                <span className="text-[var(--accent,#6366F1)]">
+                <span className="text-(--success,#22C55E)">user@codeking</span>
+                <span className="text-(--text-secondary)">&nbsp;~/repo</span>
+                <span className="text-(--accent,#6366F1)">
                   &nbsp;({entry.branch || currentBranch})
                 </span>
-                <span className="mx-1 text-[var(--text-primary)]">&nbsp;$&nbsp;</span>
-                <span className="text-[var(--text-primary)]">{entry.text}</span>
+                <span className="mx-1 text-foreground">&nbsp;$&nbsp;</span>
+                <span className="text-foreground">{entry.text}</span>
               </div>
             )
           }
@@ -69,7 +69,7 @@ export default function Terminal({
                 ? "text-[var(--danger,#EF4444)]"
                 : ""
           return (
-            <div key={i} className={`whitespace-pre-wrap text-[var(--text-secondary)] ${cls}`}>
+            <div key={i} className={`whitespace-pre-wrap text-(--text-secondary) ${cls}`}>
               {entry.text}
             </div>
           )

@@ -20,6 +20,15 @@ const env = {
   openAiModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",
   ollamaModel: process.env.OLLAMA_MODEL || "qwen2.5:7b",
   ollamaApiUrl: process.env.OLLAMA_API_URL || "http://localhost:11434",
+  ollamaApiUrls: (process.env.OLLAMA_API_URLS || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean),
+  ttsApiUrl: process.env.TTS_API_URL || "http://localhost:8880",
+  ttsApiUrls: (process.env.TTS_API_URLS || "")
+    .split(",")
+    .map((url) => url.trim())
+    .filter(Boolean),
   aiEngineUrl: process.env.AI_ENGINE_URL || "http://localhost:8000",
   clientOrigin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
 }

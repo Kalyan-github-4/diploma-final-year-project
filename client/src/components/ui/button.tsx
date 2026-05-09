@@ -5,22 +5,21 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-[0.5rem] text-sm font-medium whitespace-nowrap transition-all duration-150 outline-none select-none active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-(--accent) text-white hover:bg-(--accent-hover) aria-expanded:bg-(--accent-active) aria-expanded:text-(--text-primary) cursor-pointer",
+        default:
+          "bg-gradient-to-b from-[#6C47FF] to-[#5639CC] text-white border border-[#5639CC] shadow-[0_1px_2px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.16)] hover:from-[#7C5AFF] hover:to-[#6344E5] hover:shadow-[0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] focus-visible:ring-2 focus-visible:ring-[#6C47FF]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer",
         outline:
-          "border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:bg-[var(--bg-surface)] hover:border-[var(--border-hover)] aria-expanded:bg-[var(--bg-surface)] cursor-pointer",
+          "border border-[var(--border-subtle)] bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-[0_1px_2px_rgba(0,0,0,0.06)] hover:bg-[var(--bg-surface)] hover:border-[var(--border-hover)] hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)] focus-visible:ring-2 focus-visible:ring-[#6C47FF]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer",
         secondary:
-          "bg-[#8B5CF6]/10 text-[#8B5CF6] hover:bg-[#8B5CF6]/20 aria-expanded:bg-[#8B5CF6]/30 aria-expanded:text-[#8B5CF6]/90 cursor-pointer",
-        // secondary:
-        //   "bg-(--accent)/10 text-(--accent) hover:bg-(--accent)/20 aria-expanded:bg-(--accent)/30 aria-expanded:text-(--accent-foreground)",
+          "bg-[#6C47FF]/10 text-[#6C47FF] border border-[#6C47FF]/15 hover:bg-[#6C47FF]/18 hover:border-[#6C47FF]/25 focus-visible:ring-2 focus-visible:ring-[#6C47FF]/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-[#6C47FF]/30",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-gradient-to-b from-[#EF4444] to-[#DC2626] text-white border border-[#DC2626] shadow-[0_1px_2px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.16)] hover:from-[#F87171] hover:to-[#EF4444] focus-visible:ring-2 focus-visible:ring-[#EF4444]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer",
+        link: "text-[#6C47FF] underline-offset-4 hover:underline",
       },
       size: {
         default:

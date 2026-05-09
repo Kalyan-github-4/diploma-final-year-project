@@ -1,5 +1,5 @@
 export type LearningMode = "watch" | "predict" | "build"
-export type DSAAlgorithm = "binary-search" | "bubble-sort"
+export type DSAAlgorithm = "binary-search" | "bubble-sort" | "bfs" | "stack" | "queue" | "dijkstra" | "quick-sort"
 
 export interface StepQuestion {
   text: string
@@ -64,6 +64,7 @@ export interface BinarySearchSnapshot {
   mid: number | null
   focusIndices: number[]
   foundIndex: number | null
+  checkedIndices: number[]
 }
 
 export type BinarySearchStep = AlgorithmStep<
@@ -88,7 +89,82 @@ export interface BubbleSortSnapshot {
 }
 
 export type BubbleSortStep = AlgorithmStep<BubbleSortStepType, BubbleSortSnapshot>
-export type DSAStep = BinarySearchStep | BubbleSortStep
+export type BFSStepType =
+  | "init"
+  | "enqueue"
+  | "dequeue"
+  | "visit-neighbor"
+  | "skip-visited"
+  | "complete"
+
+export interface BFSSnapshot {
+  nodes: string[]
+  edges: [string, string][]
+  visited: string[]
+  queue: string[]
+  currentNode: string | null
+  discoveredFrom: Record<string, string | null>
+}
+
+export type BFSStep = AlgorithmStep<BFSStepType, BFSSnapshot>
+
+export type StackStepType = "init" | "push" | "pop" | "peek" | "complete"
+
+export interface StackSnapshot {
+  items: number[]
+  topIndex: number | null
+  lastOp: "push" | "pop" | "peek" | null
+  lastValue: number | null
+}
+
+export type StackStep = AlgorithmStep<StackStepType, StackSnapshot>
+
+export type QueueStepType = "init" | "enqueue" | "dequeue" | "peek" | "complete"
+
+export interface QueueSnapshot {
+  items: number[]
+  frontIndex: number | null
+  rearIndex: number | null
+  lastOp: "enqueue" | "dequeue" | "peek" | null
+  lastValue: number | null
+}
+
+export type QueueStep = AlgorithmStep<QueueStepType, QueueSnapshot>
+
+export type DijkstraStepType = "init" | "select-min" | "relax" | "no-relax" | "skip-visited" | "complete"
+
+export interface DijkstraSnapshot {
+  nodes: string[]
+  edges: [string, string, number][]
+  visited: string[]
+  currentNode: string | null
+  distances: Record<string, number>
+  previous: Record<string, string | null>
+  queue: string[]
+}
+
+export type DijkstraStep = AlgorithmStep<DijkstraStepType, DijkstraSnapshot>
+
+export type QuickSortStepType =
+  | "init"
+  | "pick-pivot"
+  | "compare"
+  | "swap"
+  | "place-pivot"
+  | "complete"
+
+export interface QuickSortSnapshot {
+  array: number[]
+  pivotIndex: number | null
+  compareIndex: number | null
+  boundaryIndex: number | null
+  sortedIndices: number[]
+  activeRange: [number, number] | null
+}
+
+export type QuickSortStep = AlgorithmStep<QuickSortStepType, QuickSortSnapshot>
+
+export type DSAStep = BinarySearchStep | BubbleSortStep | BFSStep | StackStep | QueueStep | DijkstraStep | QuickSortStep
 
 // Build Mode Types
 export interface PseudocodeBuildStep {

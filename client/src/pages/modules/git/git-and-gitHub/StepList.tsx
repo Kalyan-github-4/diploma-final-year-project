@@ -29,7 +29,7 @@ export default function StepList({ steps, currentStep, completedSteps }: StepLis
           return (
             <div key={step.id} className="flex items-start gap-3">
               <div
-                className={`mt-px flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+                className={`mt-px flex h-5.5 w-5.5 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                   status === "completed"
                     ? "bg-(--success)"
                     : status === "active"
@@ -39,13 +39,13 @@ export default function StepList({ steps, currentStep, completedSteps }: StepLis
               >
                 {isCompleted && <Check size={12} />}
                 {isActive && (
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: "white",
-                    }}
+                  <div className="w-2 h-2 border rounded-full bg-white"
+                    // style={{
+                    //   width: 8,
+                    //   height: 8,
+                    //   borderRadius: "50%",
+                    //   background: "white",
+                    // }}
                   />
                 )}
               </div>

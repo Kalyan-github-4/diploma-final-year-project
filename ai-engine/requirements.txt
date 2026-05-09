@@ -8,3 +8,5 @@ langchain-ollama
 langchain-chroma
 chromadb
 python-dotenv
+kokoro-onnx
+soundfile

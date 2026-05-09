@@ -18,13 +18,16 @@
     "@heroui/drawer": "^2.2.29",
     "@heroui/system": "^2.4.28",
     "@heroui/theme": "^2.4.26",
+    "@isomorphic-git/lightning-fs": "^4.6.2",
     "@radix-ui/react-select": "^2.2.6",
     "@tailwindcss/vite": "^4.1.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "codemirror": "^6.0.2",
+    "diff": "^8.0.4",
     "framer-motion": "^12.35.2",
+    "isomorphic-git": "^1.37.5",
     "lucide-react": "^0.577.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.4",
@@ -38,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/diff": "^7.0.2",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
@@ -50,6 +54,7 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vite-plugin-node-polyfills": "^0.26.0"
   }
 }

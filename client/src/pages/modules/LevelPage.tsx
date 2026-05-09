@@ -7,6 +7,7 @@ import BFSLevel from "@/pages/modules/dsa/components/BFSLevel"
 import StackLevel from "@/pages/modules/dsa/components/StackLevel"
 import QueueLevel from "@/pages/modules/dsa/components/QueueLevel"
 import DijkstraLevel from "@/pages/modules/dsa/components/DijkstraLevel"
+import QuickSortLevel from "@/pages/modules/dsa/components/QuickSortLevel"
 import CssLevelPage from "@/pages/modules/css-layout/CssLevelPage"
 
 /**
@@ -21,6 +22,7 @@ const DSA_LEVEL_COMPONENTS: Record<string, React.ComponentType> = {
   "4": StackLevel,
   "5": QueueLevel,
   "6": DijkstraLevel,
+  "7": QuickSortLevel,
 }
 
 export default function LevelPage() {

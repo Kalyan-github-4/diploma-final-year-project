@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Sparkles, Copy, Check, ChevronDown, Volume2, VolumeOff } from "lucide-react"
-import { getStoredVoiceId } from "@/hooks/useVoicePreference"
+import { getStoredVoiceId, VOICE_OPTIONS } from "@/hooks/useVoicePreference"
 
 export interface Message {
   id: string
@@ -108,7 +108,11 @@ function stripMarkdown(text: string) {
     .trim()
 }
 
-const KOKORO_URL = "http://localhost:8880"
+const API_BASE = (() => {
+  const raw = (import.meta.env.VITE_SERVER_URL || "").trim()
+  if (!raw || window.location.hostname === "localhost") return ""
+  return raw.replace(/\/+$/, "")
+})()
 
 function SpeakButton({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false)
@@ -133,7 +137,7 @@ function SpeakButton({ text }: { text: string }) {
     setSpeaking(true)
 
     try {
-      const res = await fetch(`${KOKORO_URL}/v1/audio/speech`, {
+      const res = await fetch(`${API_BASE}/api/ai/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -158,10 +162,22 @@ function SpeakButton({ text }: { text: string }) {
       audio.onerror = () => stop()
       audio.play()
     } catch {
-      // Fallback to browser TTS if Kokoro is down
+      // Fallback to browser TTS — try to match the selected voice's gender/accent
+      const voiceId = getStoredVoiceId()
+      const pref = VOICE_OPTIONS.find((v) => v.id === voiceId)
       const utter = new SpeechSynthesisUtterance(stripMarkdown(text))
       utter.rate = 1
-      utter.pitch = 1
+      utter.pitch = pref?.gender === "male" ? 0.85 : 1.05
+
+      if (pref) {
+        const sysvVoices = speechSynthesis.getVoices()
+        const langTag = pref.accent === "british" ? "en-GB" : "en-US"
+        const match = sysvVoices.find(
+          (v) => v.lang === langTag && (pref.gender === "male" ? v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("george") : v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("emma"))
+        ) ?? sysvVoices.find((v) => v.lang.startsWith(pref.accent === "british" ? "en-GB" : "en-US"))
+        if (match) utter.voice = match
+      }
+
       utter.onend = () => setSpeaking(false)
       utter.onerror = () => setSpeaking(false)
       speechSynthesis.speak(utter)
@@ -233,9 +249,10 @@ function MessageBubble({ msg }: { msg: Message }) {
 
 interface MessageListProps {
   messages: Message[]
+  autoSpeak?: boolean
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, autoSpeak = false }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
@@ -253,6 +270,55 @@ export function MessageList({ messages }: MessageListProps) {
   useEffect(() => {
     if (!showScrollBtn) scrollToBottom()
   }, [messages, showScrollBtn])
+
+  // Auto-speak: fire when the last bot message finishes streaming
+  const prevMessagesRef = useRef<Message[]>([])
+  useEffect(() => {
+    if (!autoSpeak) { prevMessagesRef.current = messages; return }
+
+    const prev = prevMessagesRef.current
+    prevMessagesRef.current = messages
+
+    // Find a message that just transitioned from streaming → done
+    const justFinished = messages.find((m) => {
+      if (m.role !== "bot" || m.isError || !m.text) return false
+      const old = prev.find((p) => p.id === m.id)
+      return old?.isStreaming === true && m.isStreaming === false
+    })
+
+    if (!justFinished) return
+
+    const voiceId = getStoredVoiceId()
+    const pref = VOICE_OPTIONS.find((v) => v.id === voiceId)
+    const cleaned = stripMarkdown(justFinished.text)
+
+    // Try Kokoro first, fall back to browser speech
+    ;(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/ai/tts`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ input: cleaned, voice: voiceId, model: "kokoro", response_format: "mp3" }),
+        })
+        if (!res.ok) throw new Error("unavailable")
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        const audio = new Audio(url)
+        audio.onended = () => URL.revokeObjectURL(url)
+        audio.play()
+      } catch {
+        speechSynthesis.cancel()
+        const utter = new SpeechSynthesisUtterance(cleaned)
+        utter.rate = 1
+        utter.pitch = pref?.gender === "male" ? 0.85 : 1.05
+        const sysVoices = speechSynthesis.getVoices()
+        const langTag = pref?.accent === "british" ? "en-GB" : "en-US"
+        const match = sysVoices.find((v) => v.lang.startsWith(langTag))
+        if (match) utter.voice = match
+        speechSynthesis.speak(utter)
+      }
+    })()
+  }, [messages, autoSpeak])
 
   return (
     <div className="relative flex-1 min-h-0">

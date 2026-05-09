@@ -28,14 +28,14 @@ export default function TerminalInput({
       onClick={() => inputRef.current?.focus()}
     >
       <span className="flex shrink-0 items-center">
-        <span className="text-[var(--success,#22C55E)]">user@codeking</span>
-        <span className="text-[var(--text-secondary)]">&nbsp;~/repo</span>
-        <span className="text-[var(--accent,#6366F1)]">&nbsp;({branch})</span>
-        <span className="mx-1 text-[var(--text-primary)]">&nbsp;$&nbsp;</span>
+        <span className="text-(--success,#22C55E)">user@codeking</span>
+        <span className="text-(--text-secondary)">&nbsp;~/repo</span>
+        <span className="text-(--accent,#6366F1)">&nbsp;({branch})</span>
+        <span className="mx-1 text-foreground`">&nbsp;$&nbsp;</span>
       </span>
       <input
         ref={inputRef}
-        className="flex-1 border-none bg-transparent p-0 font-mono text-[13px] text-[var(--text-primary)] !outline-none !ring-0 focus:!border-none focus:!outline-none focus:!ring-0 focus-visible:!border-none focus-visible:!outline-none focus-visible:!outline-0 focus-visible:!outline-offset-0 focus-visible:!ring-0 placeholder:text-white/15"
+        className="flex-1 border-none bg-transparent p-0 font-mono text-[13px] text-foreground` outline-none! ring-0! focus:border-none! focus:outline-none! focus:ring-0! focus-visible:border-none! focus-visible:outline-none! focus-visible:outline-0! focus-visible:outline-offset-0! focus-visible:ring-0! placeholder:text-white/15"
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}

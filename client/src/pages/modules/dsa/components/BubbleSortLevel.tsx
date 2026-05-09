@@ -10,7 +10,7 @@ import type { BubbleSortSnapshot } from "@/types/dsa.types"
 import type { DSAStep } from "@/types/dsa.types"
 import DSAAlgorithmLevel from "./DSAAlgorithmLevel"
 
-const ARRAY = [64, 34, 25, 12, 22, 11, 90]
+const ARRAY = [64, 34, 25, 34, 45, ]
 
 export default function BubbleSortLevel() {
   const { steps } = useMemo(() => generateBubbleSortSteps({ array: ARRAY }), [])

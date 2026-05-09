@@ -13,6 +13,16 @@ const SANDBOXES = [
     link: "/playground/git",
     available: true,
   },
+    {
+    id: "css",
+    title: "CSS Layout",
+    subtitle: "Flexbox & Grid sandbox",
+    description: "Experiment with CSS layouts, test properties, and see results live.",
+    icon: Code2,
+    color: "#06B6D4",
+    link: "/playground/css",
+    available: true,
+  },
   {
     id: "dsa",
     title: "DSA Sandbox",
@@ -21,16 +31,6 @@ const SANDBOXES = [
     icon: Binary,
     color: "#8B5CF6",
     link: "/playground/dsa",
-    available: true,
-  },
-  {
-    id: "css",
-    title: "CSS Layout",
-    subtitle: "Flexbox & Grid sandbox",
-    description: "Experiment with CSS layouts, test properties, and see results live.",
-    icon: Code2,
-    color: "#06B6D4",
-    link: "/playground/css",
     available: true,
   },
 ] as const

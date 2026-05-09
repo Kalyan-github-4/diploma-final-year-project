@@ -6,7 +6,11 @@ import { MessageList, type Message } from "./MessageList"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const API_BASE = import.meta.env.VITE_SERVER_URL || "http://localhost:4000"
+const API_BASE = (() => {
+  const raw = (import.meta.env.VITE_SERVER_URL || "").trim()
+  if (!raw || window.location.hostname === "localhost") return ""
+  return raw.replace(/\/+$/, "")
+})()
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || "qwen2.5:7b"
 
 const GREETINGS = [
@@ -32,6 +36,9 @@ export default function AIAssistant({ module = "git", topic = "general" }: AIAss
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [autoSpeak, setAutoSpeak] = useState(() => {
+    try { return localStorage.getItem("codeking_autospeak") === "true" } catch { return false }
+  })
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const greetingRef = useRef(randomGreeting())
@@ -112,6 +119,7 @@ export default function AIAssistant({ module = "git", topic = "general" }: AIAss
       const decoder = new TextDecoder()
       let buf = ""
       let streamDone = false
+      let gotToken = false
 
       while (!streamDone) {
         const { done, value } = await reader.read()
@@ -131,6 +139,7 @@ export default function AIAssistant({ module = "git", topic = "general" }: AIAss
             const chunk = JSON.parse(data)
             if (chunk.error) throw new Error(chunk.error)
             if (chunk.token) {
+              gotToken = true
               setMessages((prev) =>
                 prev.map((m) => m.id === botMsgId ? { ...m, text: m.text + chunk.token } : m)
               )
@@ -139,6 +148,10 @@ export default function AIAssistant({ module = "git", topic = "general" }: AIAss
             if (e instanceof Error && e.message !== "JSON parse error") throw e
           }
         }
+      }
+
+      if (!gotToken) {
+        throw new Error("AI returned an empty response. Check your model/provider configuration.")
       }
 
       setMessages((prev) =>
@@ -198,11 +211,19 @@ export default function AIAssistant({ module = "git", topic = "general" }: AIAss
         <ChatHeader
           model={OLLAMA_MODEL}
           isLoading={isLoading}
+          autoSpeak={autoSpeak}
           onClear={clearChat}
           onClose={closeChat}
+          onToggleAutoSpeak={() => {
+            setAutoSpeak((s) => {
+              const next = !s
+              try { localStorage.setItem("codeking_autospeak", String(next)) } catch { /* ignore */ }
+              return next
+            })
+          }}
         />
 
-        <MessageList messages={messages} />
+        <MessageList messages={messages} autoSpeak={autoSpeak} />
 
         <ChatInput
           value={input}

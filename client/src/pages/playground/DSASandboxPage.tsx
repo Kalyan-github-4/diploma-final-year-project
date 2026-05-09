@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
-import { ArrowLeft, Binary, ChevronsRight, Gauge, GitBranch, Layers, ListOrdered, Pause, Play, RotateCcw, Route, SkipBack, SkipForward } from "lucide-react"
+import { ArrowLeft, Binary, ChevronsRight, Gauge, GitBranch, Layers, ListOrdered, Pause, Play, RotateCcw, Route, SkipBack, SkipForward, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -15,6 +15,7 @@ import { BFS_COMPLEXITY, BFS_REFERENCE_CODE, generateBFSSteps } from "@/lib/algo
 import { STACK_COMPLEXITY, STACK_REFERENCE_CODE, generateStackSteps, parseStackOps } from "@/lib/algorithms/stack"
 import { QUEUE_COMPLEXITY, QUEUE_REFERENCE_CODE, generateQueueSteps, parseQueueOps } from "@/lib/algorithms/queue"
 import { DIJKSTRA_COMPLEXITY, DIJKSTRA_REFERENCE_CODE, DIJKSTRA_NODES, DIJKSTRA_EDGES, buildAdjacencyList, generateDijkstraSteps } from "@/lib/algorithms/dijkstra"
+import { QUICK_SORT_COMPLEXITY, QUICK_SORT_REFERENCE_CODE, QUICK_SORT_DEFAULT_ARRAY, generateQuickSortSteps } from "@/lib/algorithms/quickSort"
 
 /* ── Algorithm metadata ─────────────────────────────────── */
 
@@ -25,6 +26,7 @@ const TOPIC_OPTIONS: { value: DSAAlgorithm; label: string; icon: typeof Binary; 
   { value: "stack", label: "Stack", icon: Layers, color: "#EAB308" },
   { value: "queue", label: "Queue", icon: ListOrdered, color: "#06B6D4" },
   { value: "dijkstra", label: "Dijkstra", icon: Route, color: "#EC4899" },
+  { value: "quick-sort", label: "Quick Sort", icon: Zap, color: "#F59E0B" },
 ]
 
 const DEFAULTS: Record<DSAAlgorithm, { array: string; target: string; ops: string }> = {
@@ -34,6 +36,7 @@ const DEFAULTS: Record<DSAAlgorithm, { array: string; target: string; ops: strin
   stack: { array: "", target: "", ops: "push 5, push 3, push 8, push 1, pop, pop, push 6, pop" },
   queue: { array: "", target: "", ops: "enqueue 5, enqueue 3, enqueue 8, enqueue 1, dequeue, dequeue, enqueue 6, dequeue" },
   dijkstra: { array: "", target: "", ops: "" },
+  "quick-sort": { array: QUICK_SORT_DEFAULT_ARRAY.join(", "), target: "", ops: "" },
 }
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -101,6 +104,14 @@ function run(
     if (opsInput.trim() && !ops) return { result: null, error: "Invalid format. Use: enqueue 5, dequeue" }
     const { steps, finalItems } = generateQueueSteps(ops ?? undefined)
     return { result: { steps, resultLabel: `Final queue: [${finalItems.join(", ") || "empty"}]`, complexity: QUEUE_COMPLEXITY, referenceCode: QUEUE_REFERENCE_CODE }, error: null }
+  }
+  if (alg === "quick-sort") {
+    const arr = parseArray(arrayInput)
+    if (!arr) return { result: null, error: "Enter a valid comma-separated number list." }
+    if (arr.length < 2) return { result: null, error: "Enter at least 2 numbers to sort." }
+    if (arr.length > 8) return { result: null, error: "Keep the array to 8 elements or fewer for a clear trace." }
+    const { steps, resultArray } = generateQuickSortSteps({ array: arr })
+    return { result: { steps, resultLabel: `Sorted: [${resultArray.join(", ")}]`, complexity: QUICK_SORT_COMPLEXITY, referenceCode: QUICK_SORT_REFERENCE_CODE }, error: null }
   }
   return { result: null, error: "Unknown algorithm." }
 }
@@ -278,7 +289,7 @@ export default function DSASandboxPage() {
                   "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] font-medium transition-all duration-150",
                   isActive
                     ? "border-transparent font-semibold text-white shadow-sm"
-                    : "border-(--border-subtle) bg-(--bg-surface) text-(--text-secondary) hover:border-(--border-hover) hover:text-foreground",
+                    : "border-border bg-(--bg-surface) text-(--text-secondary) hover:border-(--border-hover) hover:text-foreground",
                 ].join(" ")}
                 style={isActive ? { backgroundColor: color, borderColor: color } : undefined}
               >
@@ -340,7 +351,7 @@ export default function DSASandboxPage() {
                   {djNodes.map((node) => (
                     <span
                       key={node}
-                      className="inline-flex items-center gap-1 rounded-lg border border-(--border-subtle) bg-(--bg-surface) px-2 py-1 text-[12px] font-semibold text-foreground font-grotesk"
+                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-(--bg-surface) px-2 py-1 text-[12px] font-semibold text-foreground font-grotesk"
                     >
                       {node}
                       <button
@@ -523,12 +534,13 @@ export default function DSASandboxPage() {
               <>
                 <label className="text-[11px] text-foreground font-grotesk">
                   Array{algorithm === "binary-search" ? " (ascending)" : ""}
+                  {algorithm === "quick-sort" && <span className="ml-1 text-(--text-tertiary)">max 8 elements</span>}
                 </label>
                 <Input
                   className="h-9 rounded-lg border-border bg-background px-2.5 text-[13px] text-foreground"
                   value={arrayInput}
                   onChange={(e) => setArrayInput(e.target.value)}
-                  placeholder={algorithm === "binary-search" ? "2, 5, 8, 12, 16" : "64, 34, 25, 12"}
+                  placeholder={algorithm === "binary-search" ? "2, 5, 8, 12, 16" : algorithm === "quick-sort" ? "38, 27, 43, 3, 9" : "64, 34, 25, 12"}
                 />
                 {algorithm === "binary-search" && (
                   <>

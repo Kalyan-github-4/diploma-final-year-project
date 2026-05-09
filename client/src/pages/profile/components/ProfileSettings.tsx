@@ -22,6 +22,12 @@ const AVATAR_PRESETS = [
   "https://api.dicebear.com/9.x/shapes/svg?seed=Builder",
 ]
 
+const API_BASE = (() => {
+  const raw = (import.meta.env.VITE_SERVER_URL || "").trim()
+  if (!raw || window.location.hostname === "localhost") return ""
+  return raw.replace(/\/+$/, "")
+})()
+
 export default function ProfileSettings({
   name,
   email,
@@ -37,7 +43,7 @@ export default function ProfileSettings({
   const previewVoice = async (id: string) => {
     setPreviewLoading(id)
     try {
-      const res = await fetch("http://localhost:8880/v1/audio/speech", {
+      const res = await fetch(`${API_BASE}/api/ai/tts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

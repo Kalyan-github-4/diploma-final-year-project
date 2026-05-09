@@ -5,8 +5,6 @@ import GitGraph from "@/pages/modules/git/git-and-gitHub/GitGraph"
 import Terminal from "@/pages/modules/git/git-and-gitHub/Terminal"
 import type { TerminalEntry } from "@/pages/modules/git/git-and-gitHub/Terminal"
 import MissionControl from "@/pages/modules/git/git-and-gitHub/MissionControl"
-import { processCommand } from "@/lib/gitSimulator"
-import type { GitState, Commit } from "@/lib/gitSimulator"
 import { doesCommandCompleteStep } from "@/lib/mission.utils"
 import type { Mission } from "@/lib/mission.utils"
 import { generateGitMissions } from "@/services/git-missions.service"
@@ -17,105 +15,11 @@ import {
 } from "@/pages/modules/git/levels.data"
 import LevelCompletionModal from "@/pages/modules/git/LevelCompletionModal"
 
-function isAncestor(
-  commits: Record<string, Commit>,
-  ancestorId: string,
-  descendantId: string
-): boolean {
-  let cursor: string | null = descendantId
-
-  while (cursor && commits[cursor]) {
-    if (cursor === ancestorId) return true
-    cursor = commits[cursor].parent
-  }
-
-  return false
-}
-
-function countDistanceToAncestor(
-  commits: Record<string, Commit>,
-  ancestorId: string,
-  descendantId: string
-): number {
-  let cursor: string | null = descendantId
-  let distance = 0
-
-  while (cursor && commits[cursor]) {
-    if (cursor === ancestorId) return distance
-    cursor = commits[cursor].parent
-    distance += 1
-  }
-
-  return 0
-}
-
-/* Build initial GitState from any mission's graph data */
-function buildInitialState(mission: Mission): GitState {
-
-
-  const mg = mission.initialGraphState
-  const commits: Record<string, Commit> = {}
-
-  /* Determine which branch each commit belongs to by checking branch pointers */
-  const commitToBranch: Record<string, string> = {}
-  for (const [branchName, tipId] of Object.entries(mg.branches)) {
-    let id: string | null = tipId
-    while (id && mg.commits[id] && !commitToBranch[id]) {
-      commitToBranch[id] = branchName
-      id = mg.commits[id].parent
-    }
-  }
-
-  for (const [id, data] of Object.entries(mg.commits)) {
-    commits[id] = {
-      id,
-      message: data.message,
-      parent: data.parent,
-      branch: commitToBranch[id] || "main",
-    }
-  }
-
-  /* Pre-initialized if there are already commits */
-  const hasInit = mission.steps[0]?.completedBy !== "git init"
-
-  return {
-    commits,
-    branches: { ...mg.branches },
-    HEAD: { ...mg.HEAD },
-    staging: [],
-    workingDir: [{ name: "README.md", status: "modified" }],
-    initialized: hasInit,
-    remotes: { ...(mg.remotes || { origin: "https://github.com/codeking/simulated-repo.git" }) },
-    upstreams: { ...(mg.upstreams || {}) },
-    pullRequests: [...(mg.pullRequests || [])],
-    nextPullRequestId: mg.nextPullRequestId || 1,
-    conflictRules: [...(mg.conflictRules || [])],
-    mergeConflict: null,
-    stashStack: [],
-    tags: {},
-    reflog: [],
-  }
-}
-
-function buildEmptyState(): GitState {
-  return {
-    commits: {},
-    branches: {},
-    HEAD: { type: "branch", ref: "main" },
-    staging: [],
-    workingDir: [],
-    initialized: false,
-    remotes: {},
-    upstreams: {},
-    pullRequests: [],
-    nextPullRequestId: 1,
-    conflictRules: [],
-    mergeConflict: null,
-    stashStack: [],
-    tags: {},
-    reflog: [],
-  }
-}
+/* ── Real-git layer (isomorphic-git) ─────────────────────────── */
+import { runGitCommand } from "@/lib/realGit/commandRouter"
+import { buildSnapshot, emptySnapshot } from "@/lib/realGit/snapshot"
+import { materializeMission } from "@/lib/realGit/materialize"
+import type { Snapshot, RepoContext } from "@/lib/realGit/types"
 
 export default function GitLearningPage() {
   const navigate = useNavigate()
@@ -139,7 +43,9 @@ export default function GitLearningPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const mission = missions[missionIndex] ?? null
 
-  const [gitState, setGitState] = useState<GitState>(() => buildEmptyState())
+  /* Real-git state: snapshot drives the UI; repoCtx is the live fs handle. */
+  const [snapshot, setSnapshot] = useState<Snapshot>(() => emptySnapshot())
+  const repoCtxRef = useRef<RepoContext | null>(null)
   const [terminalHistory, setTerminalHistory] = useState<TerminalEntry[]>([])
   const [inputValue, setInputValue] = useState("")
   const [currentStep, setCurrentStep] = useState(0)
@@ -150,9 +56,8 @@ export default function GitLearningPage() {
   const [missionComplete, setMissionComplete] = useState(false)
   const [newCommitId, setNewCommitId] = useState<string | null>(null)
 
-  const resetMissionState = useCallback((nextMission: Mission) => {
+  const resetTransientUiState = useCallback(() => {
     setMissionComplete(false)
-    setGitState(buildInitialState(nextMission))
     setTerminalHistory([])
     setCurrentStep(0)
     setCompletedSteps([])
@@ -165,18 +70,10 @@ export default function GitLearningPage() {
   }, [])
 
   const resetToEmptyState = useCallback(() => {
-    setMissionComplete(false)
-    setGitState(buildEmptyState())
-    setTerminalHistory([])
-    setCurrentStep(0)
-    setCompletedSteps([])
-    setTimer(0)
-    setShowHint(false)
-    setCoachingTips([])
-    setNewCommitId(null)
-    setInputValue("")
-    setHintsUsed(0)
-  }, [])
+    repoCtxRef.current = null
+    setSnapshot(emptySnapshot())
+    resetTransientUiState()
+  }, [resetTransientUiState])
 
   //AI Assistant context
   const currentModule = "Git"
@@ -207,7 +104,6 @@ export default function GitLearningPage() {
         if (generated.length > 0) {
           setMissions(generated)
           setMissionIndex(0)
-          resetMissionState(generated[0])
           return
         }
 
@@ -228,7 +124,30 @@ export default function GitLearningPage() {
     return () => {
       cancelled = true
     }
-  }, [resetMissionState, resetToEmptyState, levelId, levelData.topic, retryKey])
+  }, [resetToEmptyState, levelId, levelData.topic, retryKey])
+
+  /* ── Materialize the active mission into a real isomorphic-git repo
+        whenever the mission changes. Race-safe via runId. ─────────── */
+  const materializeRunIdRef = useRef(0)
+  useEffect(() => {
+    if (!mission) return
+    const runId = ++materializeRunIdRef.current
+    let cancelled = false
+
+    ;(async () => {
+      const ctx = await materializeMission(mission)
+      if (cancelled || materializeRunIdRef.current !== runId) return
+      repoCtxRef.current = ctx
+      const snap = await buildSnapshot(ctx)
+      if (cancelled || materializeRunIdRef.current !== runId) return
+      setSnapshot(snap)
+      resetTransientUiState()
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [mission, resetTransientUiState])
 
   /* Timer */
   useEffect(() => {
@@ -239,28 +158,14 @@ export default function GitLearningPage() {
 
   /* Current branch for terminal prompt */
   const currentBranch =
-    gitState.HEAD.type === "branch" ? gitState.HEAD.ref : "HEAD"
+    snapshot.HEAD.type === "branch" ? snapshot.HEAD.ref : "HEAD"
 
-  const currentBranchTip =
-    gitState.HEAD.type === "branch" ? gitState.branches[gitState.HEAD.ref] : null
-  const upstreamRef =
-    gitState.HEAD.type === "branch"
-      ? gitState.upstreams?.[gitState.HEAD.ref] || `origin/${gitState.HEAD.ref}`
-      : null
-  const upstreamTip = upstreamRef ? gitState.branches[upstreamRef] : null
-
-  let aheadBy = 0
-  let behindBy = 0
-  if (currentBranchTip && upstreamTip) {
-    if (isAncestor(gitState.commits, currentBranchTip, upstreamTip)) {
-      behindBy = countDistanceToAncestor(gitState.commits, currentBranchTip, upstreamTip)
-    } else if (isAncestor(gitState.commits, upstreamTip, currentBranchTip)) {
-      aheadBy = countDistanceToAncestor(gitState.commits, upstreamTip, currentBranchTip)
-    }
-  }
-
-  const remoteBranches = Object.keys(gitState.branches).filter((name) => name.includes("/"))
-  const openPr = (gitState.pullRequests || []).find((pr) => pr.status === "open") || null
+  /* Upstream/PR features (L16+) — placeholders for now while we focus on L1-L6. */
+  const upstreamRef: string | null = null
+  const aheadBy = 0
+  const behindBy = 0
+  const remoteBranches: string[] = []
+  const openPr: null = null
 
   const getTipsFromOutput = (output: string): string[] => {
     const tips: string[] = []
@@ -285,41 +190,34 @@ export default function GitLearningPage() {
     return tips
   }
 
-  /* Process a command */
-  const handleSubmit = useCallback(() => {
+  /* Process a command via the real-git router. */
+  const handleSubmit = useCallback(async () => {
     if (isLoadingMissions || missionComplete || !mission) return
+    const ctx = repoCtxRef.current
+    if (!ctx) return
 
     const cmd = inputValue.trim()
     if (!cmd) return
 
-    /* Add command to history */
+    /* Echo the command in the terminal */
     setTerminalHistory((prev) => [
       ...prev,
       { type: "command", text: cmd, branch: currentBranch },
     ])
+    setInputValue("")
 
-    /* Process through simulator */
-    const result = processCommand(cmd, gitState)
+    /* Run against the real repo */
+    const result = await runGitCommand(cmd, ctx)
 
-    /* Add output if any */
     if (result.output) {
-      const isError =
-        result.output.includes("fatal:") ||
-        result.output.includes("error:") ||
-        result.output.includes("command not found")
-      const isSuccess =
-        result.output.includes("Initialized") ||
-        result.output.includes("Switched") ||
-        result.output.includes("Fast-forward")
       setTerminalHistory((prev) => [
         ...prev,
         {
           type: "output",
           text: result.output,
-          outputType: isError ? "error" : isSuccess ? "success" : "normal",
+          outputType: result.outputType,
         },
       ])
-
       const nextTips = getTipsFromOutput(result.output)
       if (nextTips.length > 0) {
         setCoachingTips((prev) => {
@@ -332,21 +230,17 @@ export default function GitLearningPage() {
       }
     }
 
-    /* Update git state */
-    setGitState(result.newState)
-
-    /* Track new commit for animation */
-    if (result.graphChanged) {
-      const newIds = Object.keys(result.newState.commits).filter(
-        (id) => !gitState.commits[id]
-      )
-      if (newIds.length > 0) {
-        setNewCommitId(newIds[0])
-        setTimeout(() => setNewCommitId(null), 500)
-      }
+    /* Re-derive snapshot from real git and detect new commits for animation */
+    const prevCommitIds = new Set(Object.keys(snapshot.commits))
+    const nextSnap = await buildSnapshot(ctx)
+    setSnapshot(nextSnap)
+    const newIds = Object.keys(nextSnap.commits).filter((id) => !prevCommitIds.has(id))
+    if (newIds.length > 0) {
+      setNewCommitId(newIds[0])
+      setTimeout(() => setNewCommitId(null), 500)
     }
 
-    /* Check step completion */
+    /* Step completion (still string-matched against the user's typed command) */
     if (currentStep < mission.steps.length) {
       const step = mission.steps[currentStep]
       if (doesCommandCompleteStep(cmd, step)) {
@@ -359,9 +253,7 @@ export default function GitLearningPage() {
         }
       }
     }
-
-    setInputValue("")
-  }, [isLoadingMissions, missionComplete, mission, inputValue, gitState, currentBranch, currentStep])
+  }, [isLoadingMissions, missionComplete, mission, inputValue, currentBranch, currentStep, snapshot])
 
   /* Run test: check if current step command works */
   const handleRunTest = useCallback(() => {
@@ -451,7 +343,7 @@ export default function GitLearningPage() {
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               {/* Zone 2A: Git Graph */}
               <div className="flex min-h-0 flex-55 overflow-hidden">
-                <GitGraph gitState={gitState} newCommitId={newCommitId} />
+                <GitGraph gitState={snapshot} newCommitId={newCommitId} />
               </div>
 
               {/* Zone 2B: Terminal */}
@@ -533,7 +425,7 @@ export default function GitLearningPage() {
                 onClick={() => {
                   const nextIdx = missionIndex + 1
                   setMissionIndex(nextIdx)
-                  resetMissionState(missions[nextIdx])
+                  // Materialize effect picks up the new mission automatically.
                 }}
               >
                 Next Mission →
@@ -550,7 +442,7 @@ export default function GitLearningPage() {
           moduleSlug={slug}
           timer={timer}
           hintsUsed={hintsUsed}
-          isLastLevel={levelId >= gitLevels.length}
+          isLastLevel={levelId >= 30}
           onRetry={handleRetryLevel}
           onNextLevel={handleNextLevel}
         />

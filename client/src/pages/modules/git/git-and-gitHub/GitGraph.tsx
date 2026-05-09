@@ -1,12 +1,12 @@
 import { useMemo } from "react"
-import type { GitState } from "@/lib/gitSimulator"
-import { getBranchColor } from "@/lib/gitSimulator"
+import type { Snapshot } from "@/lib/realGit/types"
+import { getBranchColor } from "@/lib/realGit/types"
 import CommitNode from "./CommitNode"
 import BranchLabel from "./BranchLabel"
 import HeadPointer from "./HeadPointer"
 
 interface GitGraphProps {
-  gitState: GitState
+  gitState: Snapshot
   newCommitId?: string | null
 }
 
@@ -31,7 +31,17 @@ export default function GitGraph({ gitState, newCommitId }: GitGraphProps) {
   const { nodes, lines, branchLabels, headInfo, branchPointers } = useMemo(() => {
     const commits = gitState.commits
     const commitIds = Object.keys(commits)
-    if (commitIds.length === 0) return { nodes: [], lines: [], branchLabels: [], headInfo: null, branchPointers: [] }
+    if (commitIds.length === 0) {
+      const headRef = gitState.HEAD.type === "branch" ? gitState.HEAD.ref : "HEAD"
+      const color = getBranchColor(headRef)
+      return { 
+        nodes: [], 
+        lines: [], 
+        branchLabels: [{ x: START_X, y: START_Y - 52, name: headRef, color }], 
+        headInfo: { x: START_X, y: START_Y, branchName: headRef, commitId: null as string | null }, 
+        branchPointers: [{ forkX: START_X, forkY: START_Y, tipX: START_X, tipY: START_Y, name: headRef, color }] 
+      }
+    }
 
     /* Topological sort: place commits in order */
     const visited = new Set<string>()

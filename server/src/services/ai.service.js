@@ -1,7 +1,90 @@
 const { env } = require("../config/env")
 
-const OLLAMA_BASE = () => env.ollamaApiUrl || "http://localhost:11434"
 const OLLAMA_MODEL = () => env.ollamaModel || "qwen2.5:7b"
+const DEFAULT_OLLAMA_BASES = ["http://localhost:11434", "http://host.docker.internal:11434", "http://ollama:11434"]
+const DEFAULT_TTS_BASES = ["http://localhost:8880", "http://host.docker.internal:8880", "http://kokoro:8880"]
+
+function getOllamaBaseCandidates() {
+    const configured = [
+        ...(Array.isArray(env.ollamaApiUrls) ? env.ollamaApiUrls : []),
+        env.ollamaApiUrl,
+    ]
+        .filter((url) => typeof url === "string" && url.trim())
+        .map((url) => url.replace(/\/+$/, ""))
+
+    const merged = [...configured, ...DEFAULT_OLLAMA_BASES]
+    return Array.from(new Set(merged))
+}
+
+async function requestOllama(path, body, signal) {
+    const candidates = getOllamaBaseCandidates()
+    // Streaming responses must not have a short timeout — the response body can take minutes.
+    // For non-streaming calls the caller already supplies an AbortController signal.
+    // We only add a per-candidate 5s connect timeout for non-streaming calls so that
+    // unreachable hosts fail fast without blocking the candidate chain.
+    const isStreaming = body?.stream === true
+    let lastError = null
+
+    for (const baseUrl of candidates) {
+        const fetchSignal = isStreaming
+            ? signal   // no extra timeout — let the stream run until done or caller aborts
+            : signal
+                ? AbortSignal.any([signal, AbortSignal.timeout(5000)])
+                : AbortSignal.timeout(5000)
+
+        try {
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "POST",
+                signal: fetchSignal,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            })
+
+            return { response, baseUrl }
+        } catch (err) {
+            // If the outer signal was aborted (user cancel / global timeout), stop immediately
+            if (signal?.aborted) throw err
+            lastError = err
+        }
+    }
+
+    const details = lastError && typeof lastError.message === "string" ? lastError.message : "Unknown network error"
+    throw new Error(`Cannot reach Ollama. Tried: ${candidates.join(", ")}. Last error: ${details}`)
+}
+
+function getTTSBaseCandidates() {
+    const configured = [
+        ...(Array.isArray(env.ttsApiUrls) ? env.ttsApiUrls : []),
+        env.ttsApiUrl,
+    ]
+        .filter((url) => typeof url === "string" && url.trim())
+        .map((url) => url.replace(/\/+$/, ""))
+
+    const merged = [...configured, ...DEFAULT_TTS_BASES]
+    return Array.from(new Set(merged))
+}
+
+async function requestTTS(path, body) {
+    const candidates = getTTSBaseCandidates()
+    let lastError = null
+
+    for (const baseUrl of candidates) {
+        try {
+            const response = await fetch(`${baseUrl}${path}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            })
+
+            return { response, baseUrl }
+        } catch (err) {
+            lastError = err
+        }
+    }
+
+    const details = lastError && typeof lastError.message === "string" ? lastError.message : "Unknown network error"
+    throw new Error(`Cannot reach TTS service. Tried: ${candidates.join(", ")}. Last error: ${details}`)
+}
 
 function buildSystemPrompt(module, topic) {
     const moduleContext = module && module !== "git" || topic && topic !== "general"
@@ -56,7 +139,6 @@ function buildMessages(message, module, topic, history) {
 // ─── Chat (non-streaming) ─────────────────────────────────────────────────────
 
 async function generateAIReply(message, module = "git", topic = "branching", history = []) {
-    const baseUrl = OLLAMA_BASE()
     const model = OLLAMA_MODEL()
     const timeoutMs = env.aiTimeoutMs || 60000
 
@@ -66,12 +148,11 @@ async function generateAIReply(message, module = "git", topic = "branching", his
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
     try {
-        const response = await fetch(`${baseUrl}/api/chat`, {
-            method: "POST",
-            signal: controller.signal,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, stream: false, options: { num_predict: 1024, temperature: 0.7 } }),
-        })
+        const { response } = await requestOllama(
+            "/api/chat",
+            { model, messages, stream: false, options: { num_predict: 1024, temperature: 0.7 } },
+            controller.signal
+        )
 
         clearTimeout(timeoutId)
 
@@ -96,7 +177,6 @@ async function generateAIReply(message, module = "git", topic = "branching", his
 // ─── Chat (streaming — SSE) ───────────────────────────────────────────────────
 
 async function streamAIReply(message, module = "git", topic = "branching", history = [], res) {
-    const baseUrl = OLLAMA_BASE()
     const model = OLLAMA_MODEL()
 
     const messages = buildMessages(message, module, topic, history)
@@ -110,11 +190,11 @@ async function streamAIReply(message, module = "git", topic = "branching", histo
 
     let ollamaRes
     try {
-        ollamaRes = await fetch(`${baseUrl}/api/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, stream: true, options: { num_predict: 1024, temperature: 0.7 } }),
-        })
+        const { response } = await requestOllama(
+            "/api/chat",
+            { model, messages, stream: true, options: { num_predict: 1024, temperature: 0.7 } }
+        )
+        ollamaRes = response
     } catch (err) {
         res.write(`data: ${JSON.stringify({ error: `Cannot reach Ollama: ${err.message}` })}\n\n`)
         res.end()
@@ -183,7 +263,6 @@ function normalizeQuestionItem(item) {
 }
 
 async function generateDSAQuestions({ algorithm, context, steps }) {
-    const baseUrl = OLLAMA_BASE()
     const model = OLLAMA_MODEL()
     const timeoutMs = env.aiTimeoutMs || 120000
 
@@ -207,12 +286,11 @@ async function generateDSAQuestions({ algorithm, context, steps }) {
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
     try {
-        const response = await fetch(`${baseUrl}/api/chat`, {
-            method: "POST",
-            signal: controller.signal,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ model, messages, stream: false, format: "json" }),
-        })
+        const { response } = await requestOllama(
+            "/api/chat",
+            { model, messages, stream: false, format: "json" },
+            controller.signal
+        )
 
         clearTimeout(timeoutId)
 
@@ -239,4 +317,18 @@ async function generateDSAQuestions({ algorithm, context, steps }) {
     }
 }
 
-module.exports = { generateAIReply, streamAIReply, generateDSAQuestions }
+async function synthesizeSpeech({ input, voice, model = "kokoro", response_format = "mp3" }) {
+    const payload = { input, voice, model, response_format }
+    const { response } = await requestTTS("/v1/audio/speech", payload)
+
+    if (!response.ok) {
+        const errText = await response.text().catch(() => "")
+        throw new Error(`TTS error (${response.status}): ${errText}`)
+    }
+
+    const contentType = response.headers.get("content-type") || "audio/mpeg"
+    const audioBuffer = Buffer.from(await response.arrayBuffer())
+    return { contentType, audioBuffer }
+}
+
+module.exports = { generateAIReply, streamAIReply, generateDSAQuestions, synthesizeSpeech, getOllamaBaseCandidates }

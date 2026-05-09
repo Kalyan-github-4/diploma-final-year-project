@@ -1,25 +1,37 @@
 {
   "module": "git-github",
   "title": "Git & GitHub",
-  "totalLevels": 18,
+  "totalLevels": 30,
   "sections": [
     {
-      "name": "Foundation",
+      "name": "Track 1 — Git Foundations",
       "difficulty": "beginner",
       "levels": [1, 2, 3, 4, 5, 6],
       "summary": "Core Git mechanics — init, staging, commits, undo, and history inspection."
     },
     {
-      "name": "Branching Workflows",
+      "name": "Track 2 — Branching Workflows",
       "difficulty": "intermediate",
       "levels": [7, 8, 9, 10, 11, 12],
       "summary": "Branching, switching, merging, hotfix and release workflows."
     },
     {
-      "name": "History & Collaboration",
+      "name": "Track 3 — History & Collaboration",
       "difficulty": "advanced",
       "levels": [13, 14, 15, 16, 17, 18],
       "summary": "Rebase, conflict resolution, recovery, remotes, and PR lifecycle."
+    },
+    {
+      "name": "Track 4 — Advanced Git Techniques",
+      "difficulty": "advanced",
+      "levels": [19, 20, 21, 22, 23, 24],
+      "summary": "Stash, cherry-pick, tags, remote origin, fork workflow, and advanced recovery."
+    },
+    {
+      "name": "Track 5 — Professional Mastery",
+      "difficulty": "advanced",
+      "levels": [25, 26, 27, 28, 29, 30],
+      "summary": "Conventional commits, interactive rebase, audit tools, branch strategy, CI/CD, and professional capstone."
     }
   ],
   "levels": {
@@ -415,7 +427,7 @@
       "title": "PR Command Center",
       "focus": "End-to-end pull request lifecycle",
       "topic": "advanced-collaboration",
-      "teaches": ["git pr create", "git pr checks", "git pr review approve", "git pr merge --squash"],
+      "teaches": ["git push -u origin", "git fetch origin", "git rebase origin/main", "git merge --squash"],
       "prerequisites": ["git push -u origin", "git fetch origin", "git checkout -b", "git merge"],
       "concepts": [
         "Pull requests are the standard way to propose changes on GitHub",
@@ -440,8 +452,8 @@
       "title": "Git & GitHub King",
       "focus": "Full incident response workflow",
       "topic": "advanced-collaboration",
-      "teaches": ["git fetch origin", "git rebase", "git pr create", "git pr merge --squash"],
-      "prerequisites": ["git fetch origin", "git pull origin main", "git push -u origin", "git rebase", "git pr create", "git pr merge --squash"],
+      "teaches": ["git bisect start", "git bisect bad", "git bisect good", "git reflog"],
+      "prerequisites": ["git fetch origin", "git pull origin main", "git push -u origin", "git rebase", "git merge --squash", "git revert"],
       "concepts": [
         "Incident response requires fast, clean Git workflows",
         "Fetch latest, create hotfix branch, fix, rebase, PR, squash merge",
@@ -460,6 +472,306 @@
         "Coordinating a hotfix with a team under time pressure"
       ],
       "successCriteria": "Student can execute a full incident response Git workflow under pressure"
+    },
+    "19": {
+      "title": "WIP Saver",
+      "focus": "Save and restore work-in-progress with stash",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git stash", "git stash pop", "git stash list", "git stash apply"],
+      "prerequisites": ["git add .", "git commit -m", "git checkout -b", "git switch"],
+      "concepts": [
+        "git stash temporarily shelves changes so you can switch context",
+        "git stash pop restores the most recent stash and removes it",
+        "git stash apply restores without removing from the stash list",
+        "git stash list shows all saved stashes indexed as stash@{0}, stash@{1}, ...",
+        "Stash is branch-independent — you can stash on one branch and pop on another"
+      ],
+      "commonMistakes": [
+        "Using stash instead of committing WIP to a draft branch",
+        "Forgetting to pop the stash after switching back",
+        "Stashing and losing track of what was stashed (use stash list)"
+      ],
+      "realWorldScenarios": [
+        "Mid-feature when an urgent bug requires immediate context switch",
+        "Stashing experiments before switching to review a teammate's branch",
+        "Saving WIP before a dangerous git pull --rebase"
+      ],
+      "successCriteria": "Student can stash, switch context, fix, and restore WIP without losing work"
+    },
+    "20": {
+      "title": "Cherry-Pick Surgeon",
+      "focus": "Apply specific commits across branches",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git cherry-pick", "git log --oneline", "git status"],
+      "prerequisites": ["git log --oneline", "git checkout -b", "git commit -m", "git merge"],
+      "concepts": [
+        "cherry-pick applies the diff from one commit onto the current branch",
+        "The picked commit gets a new SHA but the same message and changes",
+        "Use cherry-pick to back-port a fix to a release branch",
+        "Pick in chronological order when picking a sequence of commits",
+        "If conflict occurs, resolve then git cherry-pick --continue"
+      ],
+      "commonMistakes": [
+        "Picking out of order and hitting dependency conflicts",
+        "Using cherry-pick instead of merge when you need all commits from a branch",
+        "Forgetting that the picked commit gets a new hash"
+      ],
+      "realWorldScenarios": [
+        "Back-porting a critical security fix to the v2 release branch",
+        "Applying one specific commit from a long feature branch to main",
+        "Sharing a commit between two parallel release tracks"
+      ],
+      "successCriteria": "Student can surgically apply commits to target branches using cherry-pick"
+    },
+    "21": {
+      "title": "Tag & Release",
+      "focus": "Version releases with Git tags and semantic versioning",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git tag", "git tag -a", "git tag -a -m"],
+      "prerequisites": ["git log --oneline", "git commit -m"],
+      "concepts": [
+        "Tags are permanent pointers to commits — unlike branches they don't move",
+        "Lightweight tags: git tag v1.0.0 — just a pointer, no extra metadata",
+        "Annotated tags: git tag -a v1.0.0 -m 'message' — stores author, date, and message",
+        "Semantic versioning: MAJOR.MINOR.PATCH (1.2.3) — increment by change type",
+        "MAJOR = breaking change, MINOR = new feature, PATCH = bug fix"
+      ],
+      "commonMistakes": [
+        "Using lightweight tags for releases (prefer annotated for traceability)",
+        "Not following semver — arbitrary version numbers confuse consumers",
+        "Forgetting to push tags to remote (git push --tags)"
+      ],
+      "realWorldScenarios": [
+        "Tagging a production release before deployment",
+        "Creating a patch release tag after a hotfix",
+        "Versioning an open-source library following semver"
+      ],
+      "successCriteria": "Student can create annotated tags and apply semantic versioning correctly"
+    },
+    "22": {
+      "title": "Remote Origin Mastery",
+      "focus": "Full remote operations — add, fetch, push, track",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git remote add", "git remote -v", "git fetch origin", "git push -u origin"],
+      "prerequisites": ["git log --oneline", "git commit -m", "git checkout -b"],
+      "concepts": [
+        "origin is the conventional name for your primary remote",
+        "git remote add connects your local repo to a remote URL",
+        "git remote -v lists all configured remotes with their URLs",
+        "git fetch downloads changes without merging — safe to do anytime",
+        "git push -u sets upstream tracking so future push/pull work without arguments"
+      ],
+      "commonMistakes": [
+        "Forgetting -u on the first push (future pushes won't know the remote)",
+        "Adding the wrong remote URL",
+        "Using pull instead of fetch when you just want to inspect remote changes"
+      ],
+      "realWorldScenarios": [
+        "Connecting a new local project to a GitHub repository",
+        "Fetching teammates' branches to review locally",
+        "Pushing a feature branch for the first time to trigger CI"
+      ],
+      "successCriteria": "Student can connect, inspect, and sync with remote repositories confidently"
+    },
+    "23": {
+      "title": "Fork & Upstream Sync",
+      "focus": "Fork workflow for open-source contribution",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git remote add upstream", "git fetch upstream", "git merge upstream/main", "git push origin"],
+      "prerequisites": ["git remote add", "git fetch origin", "git push -u origin", "git merge"],
+      "concepts": [
+        "Forking creates your own copy of a repo under your GitHub account",
+        "origin = your fork, upstream = the original project",
+        "Sync your fork by fetching from upstream and merging into your local main",
+        "Contributions flow: fork → branch → commit → push to origin → PR to upstream",
+        "Always sync from upstream before starting a contribution to avoid stale conflicts"
+      ],
+      "commonMistakes": [
+        "Opening a PR from main instead of a feature branch",
+        "Never syncing the fork — working on stale code for weeks",
+        "Confusing origin and upstream — pushing to upstream instead of origin"
+      ],
+      "realWorldScenarios": [
+        "Contributing a bug fix to an open-source project",
+        "Syncing your fork of a rapidly-evolving library before a contribution",
+        "Maintaining a personal fork of an internal tool with customizations"
+      ],
+      "successCriteria": "Student can manage the full fork workflow including upstream sync"
+    },
+    "24": {
+      "title": "Advanced Recovery Pro",
+      "focus": "Combine stash, cherry-pick, reflog in real incidents",
+      "topic": "advanced-git-techniques",
+      "teaches": ["git stash", "git cherry-pick", "git reflog", "git reset --soft", "git revert", "git tag -a"],
+      "prerequisites": ["git stash", "git cherry-pick", "git tag", "git reflog", "git reset --soft", "git revert"],
+      "concepts": [
+        "Real incidents require combining multiple recovery tools in sequence",
+        "Incident workflow: stash WIP → diagnose with reflog/log → fix → revert or cherry-pick → tag",
+        "Reflog is your ultimate undo — it records every HEAD movement",
+        "Cherry-pick hotfixes to release branches without merging unrelated changes",
+        "Always tag after an emergency fix for auditability"
+      ],
+      "commonMistakes": [
+        "Panicking and force-pushing to main during an incident",
+        "Not tagging the patched release — loses the incident audit trail",
+        "Forgetting to pop the stash after the incident is resolved"
+      ],
+      "realWorldScenarios": [
+        "Production is down — stash, diagnose, cherry-pick hotfix, tag, ship",
+        "Recovering lost commits after a misfire git reset --hard",
+        "Coordinating a patch release while features are in development"
+      ],
+      "successCriteria": "Student can execute a multi-step incident recovery workflow under pressure"
+    },
+    "25": {
+      "title": "Conventional Commits",
+      "focus": "Professional commit message standards",
+      "topic": "professional-mastery",
+      "teaches": ["feat:", "fix:", "chore:", "docs:", "refactor:", "test:", "ci:", "feat!:"],
+      "prerequisites": ["git add .", "git commit -m", "git log --oneline"],
+      "concepts": [
+        "Conventional commits format: <type>(<scope>): <description>",
+        "Types: feat (new feature), fix (bug fix), chore (maintenance), docs, refactor, test, ci, build",
+        "Breaking changes are marked with ! after the type: feat!: or BREAKING CHANGE in footer",
+        "Semantic versioning is automated from conventional commits: feat→MINOR, fix→PATCH, !→MAJOR",
+        "Tools like semantic-release and conventional-changelog parse commit history automatically"
+      ],
+      "commonMistakes": [
+        "Using generic types like 'update' or 'change' instead of the spec types",
+        "Missing the scope when it would add context (auth), (payment), (ui)",
+        "Not marking breaking changes — consumers get surprised by MAJOR bumps"
+      ],
+      "realWorldScenarios": [
+        "Enabling automatic changelog generation for an npm package",
+        "Enforcing consistent commit style across a large engineering team",
+        "Setting up semantic-release for automated versioning and GitHub releases"
+      ],
+      "successCriteria": "Student writes proper conventional commits including breaking change notation"
+    },
+    "26": {
+      "title": "Interactive Rebase",
+      "focus": "Rewrite branch history before PR",
+      "topic": "professional-mastery",
+      "teaches": ["git rebase -i HEAD~N", "squash", "fixup", "reword", "reorder"],
+      "prerequisites": ["git log --oneline", "git rebase", "git status"],
+      "concepts": [
+        "git rebase -i lets you squash, fixup, reword, reorder, or drop commits",
+        "squash merges a commit into the one above and combines messages",
+        "fixup merges a commit but discards its message (cleaner for typo fixes)",
+        "reword keeps the commit but lets you edit the message",
+        "Never rebase commits that have been pushed to a shared remote branch"
+      ],
+      "commonMistakes": [
+        "Rebasing public commits — causes force-push and breaks teammates",
+        "Squashing too aggressively — losing useful context in the history",
+        "Getting stuck in a detached HEAD state after a conflict"
+      ],
+      "realWorldScenarios": [
+        "Cleaning up 'WIP', 'fix typo', 'more fixes' into one commit before PR",
+        "Reordering commits so logical changes are grouped for reviewer clarity",
+        "Squashing commits to match a team's 'one commit per PR' policy"
+      ],
+      "successCriteria": "Student can clean up branch history using interactive rebase confidently"
+    },
+    "27": {
+      "title": "Git Audit Tools",
+      "focus": "Investigate history with blame, grep, bisect",
+      "topic": "professional-mastery",
+      "teaches": ["git blame", "git log --grep", "git log --author", "git log --since", "git bisect"],
+      "prerequisites": ["git log --oneline", "git revert", "git commit -m"],
+      "concepts": [
+        "git blame shows line-by-line authorship and commit for any file",
+        "git log --grep='pattern' filters commits by message content",
+        "git log --author='name' shows commits from a specific author",
+        "git log --since='date' limits log to a time range",
+        "git bisect uses binary search to find the commit that introduced a bug — O(log n)"
+      ],
+      "commonMistakes": [
+        "Using blame to assign fault rather than find context",
+        "Not combining blame with log for full context (who + why)",
+        "Forgetting git bisect reset after finding the bad commit"
+      ],
+      "realWorldScenarios": [
+        "Post-incident: find who introduced the breaking change and when",
+        "Sprint review: which commits touched the payment module in the last 30 days",
+        "Regression hunt: binary search through 200 commits to find the bug"
+      ],
+      "successCriteria": "Student can investigate any codebase incident using audit tools"
+    },
+    "28": {
+      "title": "Branch Strategy",
+      "focus": "GitFlow, trunk-based development, branch naming",
+      "topic": "professional-mastery",
+      "teaches": ["git switch -c hotfix/", "git switch -c release/", "git switch -c feature/"],
+      "prerequisites": ["git checkout -b", "git merge", "git tag -a", "git commit -m"],
+      "concepts": [
+        "GitFlow: main + develop + feature/* + release/* + hotfix/* — suits scheduled releases",
+        "Trunk-based: short-lived branches (1-2 days max) merging to trunk frequently — suits CI/CD",
+        "Branch naming: type/ticket-description (feature/PROJ-142-user-search)",
+        "Hotfix branches always cut from main (production), not develop",
+        "Release branches stabilize code, then merge to both main and develop"
+      ],
+      "commonMistakes": [
+        "Mixing GitFlow and trunk-based — no clear strategy creates chaos",
+        "Long-lived feature branches (weeks) that diverge massively",
+        "Cutting hotfix from develop instead of main"
+      ],
+      "realWorldScenarios": [
+        "Onboarding to a team's branching strategy on day one",
+        "Choosing between GitFlow and trunk-based for a new microservice",
+        "Setting up branch protection rules for the chosen strategy"
+      ],
+      "successCriteria": "Student understands GitFlow and trunk-based trade-offs and can apply either"
+    },
+    "29": {
+      "title": "CI/CD & Repo Hygiene",
+      "focus": ".gitignore, git hooks, GitHub Actions",
+      "topic": "professional-mastery",
+      "teaches": ["git rm --cached", "git add .github/", "git commit -m 'ci:'", "git tag v0.1.0"],
+      "prerequisites": ["git add .", "git commit -m", "git status", "git tag"],
+      "concepts": [
+        ".gitignore patterns: *.log, node_modules/, .env, dist/ — never commit these",
+        "git rm --cached removes a file from tracking without deleting it from disk",
+        "Git hooks: pre-commit (lint/test), commit-msg (enforce conventions), pre-push (final checks)",
+        "GitHub Actions workflows live at .github/workflows/*.yml — versioned with your code",
+        "CODEOWNERS defines who reviews which parts of the repo"
+      ],
+      "commonMistakes": [
+        "Committing .env or credentials to version control",
+        "Adding .gitignore too late — tracked files aren't automatically ignored",
+        "Skipping hooks with --no-verify without understanding why they're failing"
+      ],
+      "realWorldScenarios": [
+        "Removing a .env file that was accidentally committed",
+        "Setting up pre-commit hooks to run lint before every commit",
+        "Committing a GitHub Actions CI pipeline that runs tests on every PR"
+      ],
+      "successCriteria": "Student can configure repo hygiene tooling and version CI workflows"
+    },
+    "30": {
+      "title": "Git & GitHub King: Pro",
+      "focus": "Full professional workflow capstone",
+      "topic": "professional-mastery",
+      "teaches": ["all-previous-commands", "full-workflow-integration"],
+      "prerequisites": ["all-tracks-1-through-4", "conventional-commits", "interactive-rebase", "git-audit-tools", "branch-strategy", "ci-cd-hygiene"],
+      "concepts": [
+        "Professional Git combines: conventional commits + feature branches + interactive rebase + PRs",
+        "Incident response: stash WIP → diagnose → cherry-pick hotfix → tag → push → restore WIP",
+        "Code review culture: clean commits, good PR descriptions, responsive to feedback",
+        "Git is the audit trail of your team — every commit tells a story",
+        "Job-ready = you can onboard to any team's Git workflow on day one"
+      ],
+      "commonMistakes": [
+        "Treating Git as just a backup tool rather than a communication tool",
+        "Skipping the interactive rebase step — messy PR history slows review",
+        "Not tagging releases — makes deployment and rollback harder to track"
+      ],
+      "realWorldScenarios": [
+        "Full sprint workflow: plan branches → conventional commits → squash → PR → merge → tag",
+        "Production incident: stash → hotfix branch → cherry-pick → tag → ship → restore",
+        "New team member onboarding — reading git log tells the entire story of the codebase"
+      ],
+      "successCriteria": "Student can execute all professional Git workflows and is job-ready"
     }
   }
 }
