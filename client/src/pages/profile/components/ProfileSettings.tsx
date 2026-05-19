@@ -24,7 +24,7 @@ const AVATAR_PRESETS = [
 
 const API_BASE = (() => {
   const raw = (import.meta.env.VITE_SERVER_URL || "").trim()
-  if (!raw || window.location.hostname === "localhost") return ""
+  if (!raw) return ""
   return raw.replace(/\/+$/, "")
 })()
 

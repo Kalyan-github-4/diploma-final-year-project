@@ -8,7 +8,7 @@ import { MessageList, type Message } from "./MessageList"
 
 const API_BASE = (() => {
   const raw = (import.meta.env.VITE_SERVER_URL || "").trim()
-  if (!raw || window.location.hostname === "localhost") return ""
+  if (!raw) return ""
   return raw.replace(/\/+$/, "")
 })()
 const OLLAMA_MODEL = import.meta.env.VITE_OLLAMA_MODEL || "qwen2.5:7b"
